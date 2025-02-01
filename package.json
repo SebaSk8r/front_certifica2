@@ -1,0 +1,50 @@
+{
+  "name": "quasar_certifica2",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "cp -a unique/redbus/. . && vite",
+    "build:metropol": "rm -rf dist_metropol && cp -a unique/metropol/. . && vite build && mv dist dist_metropol",
+    "build:redbus": "rm -rf dist_redbus && cp -a unique/redbus/. . && vite build && mv dist dist_redbus",
+    "build:subus": "rm -rf dist_subus && cp -a unique/subus/. . && vite build && mv dist dist_subus",
+    "build:voy": "rm -rf dist_voy && cp -a unique/voy/. . && vite build && mv dist dist_voy",
+    "build": "npm run build --ws && npm run build:metropol && npm run build:subus && npm run build:redbus && npm run build:voy",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
+  },
+  "workspaces": [
+    "local_modules/*"
+  ],
+  "dependencies": {
+    "@googlemaps/js-api-loader": "^1.16.6",
+    "@googlemaps/markermanager": "^1.0.29",
+    "@quasar/extras": "^1.16.11",
+    "@vueuse/core": "^10.9.0",
+    "chart.js": "^4.4.4",
+    "csv-stringify": "^6.4.6",
+    "firebase": "^10.11.1",
+    "haversine-distance": "^1.2.1",
+    "iconv-lite": "^0.6.3",
+    "nanoid": "^5.0.7",
+    "nanoid-dictionary": "^4.3.0",
+    "papaparse": "^5.4.1",
+    "pinia": "^2.1.7",
+    "quasar": "^2.16.2",
+    "repuestos": "file:local_modules/repuestos",
+    "sistema_componente": "file:local_modules/sistema_componente",
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "@quasar/vite-plugin": "^1.7.0",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "eslint": "^8.57.1",
+    "eslint-plugin-vue": "^9.32.0",
+    "globals": "^15.14.0",
+    "sass": "^1.77.0",
+    "vite": "^5.2.8",
+    "vite-plugin-pwa": "^0.20.0"
+  }
+}

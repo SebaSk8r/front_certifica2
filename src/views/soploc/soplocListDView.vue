@@ -1,0 +1,576 @@
+<template>
+  <div class="q-pa-md">
+    <q-table
+      title="Registros"
+      :rows="solicitud_diagnostico_arr"
+      :columns="columns"
+      :filter="filter"
+      row-key="uuid"
+      class="q-ma-md"
+      :loading="loading"
+      :pagination="pagination"
+      :visible-columns="visible_cols"
+      :rows-per-page-options="[0]"
+      no-data-label="No se han encontrado registros"
+      no-results-label="No se encuentran resultados para búsqueda"
+      loading-label="Cargando.."
+    >
+      <template v-slot:top>
+        <q-btn
+          v-if="sdiag"
+          color="primary"
+          to="/soplocD/add"
+          label="Agregar"
+          class="q-mr-sm"
+        />
+        <q-btn
+          color="dark"
+          label="Histórico"
+          class="q-mr-sm"
+          @click="exportTable"
+          :loading="loading_his"
+        />
+        <q-space />
+        <q-input
+          debounce="500"
+          dense
+          v-model="filter"
+          label="Filtrar"
+          type="search"
+          style="max-width: 50%"
+          input-class="text-uppercase"
+        >
+          <template v-slot:append>
+            <q-icon name="search" />
+          </template>
+        </q-input>
+      </template>
+      <template v-slot:no-data="{ message }">
+        <div class="full-width row flex-center text-accent q-gutter-sm">
+          <q-icon size="2em" name="sentiment_dissatisfied" />
+          <span> {{ message }} </span>
+        </div>
+      </template>
+      <template v-slot:body-cell-actions="props">
+        <q-td :props="props">
+          <q-btn
+            v-if="sumi"
+            color="primary"
+            icon="event"
+            flat
+            dense
+            @click="onEnd(props.row)"
+          />
+          <q-btn
+            v-if="sumi || sdiag"
+            color="negative"
+            icon="delete"
+            flat
+            dense
+            @click="onDelete(props.row)"
+          />
+        </q-td>
+      </template>
+    </q-table>
+  </div>
+  <q-dialog
+    v-model="dialog"
+    transition-show="scale"
+    transition-hide="scale"
+    persistent
+  >
+    <q-date
+      v-model="fecha_resolucion_concretada"
+      :subtitle="solicitud_uuid"
+      :options="optionsFn"
+      :events="eventsFn"
+      :event-color="eventsCFn"
+    >
+      <q-form @submit="onCEnd()">
+        <q-input
+          v-model="ot_resolucion_detalle"
+          label="DETALLE RESOLUCION"
+          dense
+          :rules="[
+            (val) => (val && val.length > 0) || 'Este campo es obligatorio.',
+          ]"
+          input-class="text-uppercase"
+          autogrow
+        >
+        </q-input>
+        <div class="row justify-center q-mt-sm">
+          <q-btn
+            color="dark"
+            label="Cancelar"
+            class="q-mr-sm"
+            v-close-popup
+            @click="ot_resolucion_detalle = null"
+          />
+          <q-btn
+            color="primary"
+            label="Finalizar"
+            class="q-mr-sm"
+            type="submit"
+            :disable="!fecha_resolucion_concretada"
+          />
+        </div>
+      </q-form>
+    </q-date>
+  </q-dialog>
+
+  <q-dialog
+    v-model="dialog_del"
+    transition-show="scale"
+    transition-hide="scale"
+    persistent
+  >
+    <q-card>
+      <q-form @submit="onCDelete()">
+        <q-linear-progress :value="1.0" color="negative"></q-linear-progress>
+        <q-card-section class="row items-center no-wrap">
+          <div>
+            <div class="row">
+              <div class="text-weight-bold q-mr-sm">ELIMINAR</div>
+              <div class="text-grey">{{ solicitud_uuid }}</div>
+            </div>
+            <q-select
+              v-if="sumi"
+              v-model="causa"
+              label="CAUSA"
+              :options="delete_options"
+              dense
+              :rules="[(val) => !!val || 'Este campo es obligatorio.']"
+            >
+            </q-select>
+          </div>
+          <q-btn flat round icon="cancel" v-close-popup @click="causa = null">
+            <q-tooltip class="bg-dark" :offset="[0, 5]">Cancelar</q-tooltip>
+          </q-btn>
+          <q-btn flat round color="negative" icon="delete" type="submit">
+            <q-tooltip class="bg-negative" :offset="[0, 5]">Eliminar</q-tooltip>
+          </q-btn>
+        </q-card-section>
+      </q-form>
+    </q-card>
+  </q-dialog>
+</template>
+<script setup>
+import { useQuasar } from "quasar";
+import { useSdiagStore } from "@/store/sdiagStore";
+import { storeToRefs } from "pinia";
+import { ref, watch, shallowRef } from "vue";
+import { exportFile } from "quasar";
+import { useUserStore } from "@/store/userStore";
+import { stringify } from "csv-stringify/browser/esm/sync";
+import { useDateFormat } from "@vueuse/core";
+
+const visible_cols = [
+  "unidad_negocio",
+  "unidad_servicio",
+  "uuid",
+  "estado",
+  "placa_patente",
+  "km_ejecucion",
+  "tipo_solicitud",
+  "sistema_componente",
+  //"ot_numero",
+  //"causa_origen",
+  "ot_solicitud_fecha",
+  "ot_solicitud_hora",
+  "ot_solicitud_name",
+  "ot_resolucion_solicitada_fecha",
+  "ot_taller_planta",
+  "dominio",
+  "ot_taller_planta",
+  "ot_solicitud_detalle",
+  "ot_resolucion_concretada_fecha",
+  "ot_resolucion_name",
+  "ot_resolucion_detalle",
+  "causa",
+  "hasPendingWrites",
+  "actions",
+];
+const columns = [
+  {
+    name: "unidad_negocio",
+    label: "Unidad Negocio",
+    field: "unidad_negocio",
+    align: "center",
+  },
+  {
+    name: "unidad_servicio",
+    label: "Unidad Servicio",
+    field: "unidad_servicio",
+    align: "center",
+  },
+  {
+    name: "uuid",
+    label: "ID",
+    field: "uuid",
+    align: "center",
+  },
+  {
+    name: "estado",
+    label: "Estado",
+    field: (row) =>
+      row.estado === 0
+        ? "En Proceso"
+        : row.estado === 1
+        ? "Finalizada"
+        : row.estado === 3
+        ? "Eliminada"
+        : "",
+    align: "center",
+    sortable: true,
+  },
+  {
+    name: "tipo_solicitud",
+    label: "Tipo Solicitud",
+    field: "tipo_solicitud",
+    align: "center",
+  },
+  {
+    name: "placa_patente",
+    label: "Placa Patente",
+    field: "placa_patente",
+    align: "center",
+  },
+  {
+    name: "km_ejecucion",
+    label: "Kilometraje",
+    field: "km_ejecucion",
+    align: "center",
+  },
+  {
+    name: "sistema_componente",
+    label: "Sistema / Componente",
+    field: "sistema_componente",
+    align: "center",
+  },
+  {
+    name: "ot_numero",
+    label: "Numero Atención",
+    field: "ot_numero",
+    align: "center",
+  },
+  {
+    name: "ot_solicitud_fecha",
+    label: "Fecha Solicitud",
+    field: "ot_solicitud_fecha",
+    align: "center",
+  },
+  {
+    name: "ot_solicitud_hora",
+    label: "Hora Solicitud",
+    field: "ot_solicitud_hora",
+    align: "center",
+  },
+  {
+    name: "ot_solicitud_name",
+    label: "Solicitante",
+    field: "ot_solicitud_name",
+    align: "center",
+  },
+  {
+    name: "ot_resolucion_solicitada_fecha",
+    label: "Fecha Resolucion Solicitada",
+    field: "ot_resolucion_solicitada_fecha",
+    align: "center",
+  },
+  {
+    name: "ot_taller_planta",
+    label: "Taller / Planta",
+    field: "ot_taller_planta",
+    align: "center",
+  },
+  {
+    name: "dominio",
+    label: "Dominio",
+    field: (row) =>
+      row.dominio === "0"
+        ? "CARROCERIA"
+        : row.dominio === "1"
+        ? "CHASIS"
+        : "CHASIS",
+    align: "center",
+    sortable: true,
+  },
+  {
+    name: "ot_solicitud_detalle",
+    label: "Detalle Solicitud",
+    field: "ot_solicitud_detalle",
+    align: "center",
+  },
+  {
+    name: "ot_resolucion_concretada_fecha",
+    label: "Fecha Resolucion Concretada",
+    field: "ot_resolucion_concretada_fecha",
+    align: "center",
+  },
+  {
+    name: "ot_resolucion_name",
+    label: "Resolutor",
+    field: "ot_resolucion_name",
+    align: "center",
+  },
+  {
+    name: "ot_resolucion_detalle",
+    label: "Detalle Resolución",
+    field: "ot_resolucion_detalle",
+    align: "center",
+  },
+  {
+    name: "causa",
+    label: "Causa Eliminación",
+    field: (row) => delete_map.get(row.causa),
+    align: "center",
+  },
+  {
+    name: "hasPendingWrites",
+    label: "Sincronizado",
+    field: "hasPendingWrites",
+    align: "center",
+  },
+  { name: "actions", label: "Acciones", field: "", align: "center" },
+  {
+    name: "ot_solicitud_timestamp",
+    field: "ot_solicitud_timestamp",
+  },
+];
+const pagination = ref({
+  sortBy: "ot_solicitud_timestamp",
+  descending: true,
+  page: 1,
+  rowsPerPage: 7,
+});
+
+const { m_solicitud_diagnostico_change } = storeToRefs(useSdiagStore());
+const { getall, gethistoric, update } = useSdiagStore();
+const solicitud_diagnostico_arr = shallowRef([]);
+const filter = ref("");
+const { notify } = useQuasar();
+const { name, uid, sumi, sdiag } = useUserStore();
+const loading = ref(true);
+const loading_his = ref(false);
+
+const dialog = ref(false);
+const dialog_del = ref(false);
+const solicitud_uuid = ref(false);
+const fecha_resolucion_concretada = ref(null);
+let ot_resolucion_solicitada_timestamp = null;
+let ot_solicitud_timestamp = null;
+const causa = ref(null);
+const ot_resolucion_detalle = ref(null);
+
+const delete_options = [
+  {
+    label: "FECHA NO CORRESPONDE",
+    value: 4,
+  },
+  {
+    label: "SOLICITUD INVIABLE",
+    value: 5,
+  },
+];
+const delete_map = new Map([
+  [0, "SOLICITUD INCORRECTA"],
+  [1, "VALORES NO CORRESPONDEN"],
+  [2, "CANTIDADES NO CORRESPONDEN"],
+  [3, "LINEAS NO CORRESPONDEN"],
+  [4, "FECHA NO CORRESPONDE"],
+  [5, "SOLICITUD INVIABLE"],
+]);
+
+const optionsFn = (date) => {
+  return (
+    date >=
+    useDateFormat(new Date(ot_solicitud_timestamp * 1000), "YYYY/MM/DD").value
+  );
+};
+const eventsFn = (date) => {
+  return (
+    date >=
+    useDateFormat(new Date(ot_solicitud_timestamp * 1000), "YYYY/MM/DD").value
+  );
+};
+const eventsCFn = (date) => {
+  if (
+    date <=
+    useDateFormat(
+      new Date(ot_resolucion_solicitada_timestamp * 1000),
+      "YYYY/MM/DD"
+    ).value
+  )
+    return "teal";
+  else return "red";
+};
+
+const onDelete = (row) => {
+  if (![0].includes(row.estado) || (row.user_uid !== uid && !sumi)) {
+    notify({
+      color: "red-6",
+      textColor: "white",
+      icon: "error",
+      message: "Solicitud no puede ser eliminada",
+      timeout: 1000,
+    });
+    return false;
+  }
+  solicitud_uuid.value = row.uuid;
+  dialog_del.value = true;
+};
+const onCDelete = () => {
+  const payload = {
+    uuid: solicitud_uuid.value,
+    estado: 3,
+    causa: causa.value?.value || 0,
+    ot_resolucion_name: name,
+    ot_resolucion_uid: uid,
+  };
+  dialog_del.value = false;
+  update(payload);
+  notify({
+    color: "green-6",
+    textColor: "white",
+    icon: "cloud_done",
+    message: "Solicitud Eliminada",
+    timeout: 1000,
+  });
+};
+const onEnd = (row) => {
+  if (![0].includes(row.estado)) {
+    notify({
+      color: "red-6",
+      textColor: "white",
+      icon: "error",
+      message: "Solicitud no puede ser editada",
+      timeout: 1000,
+    });
+    return false;
+  }
+  solicitud_uuid.value = row.uuid;
+  ot_resolucion_solicitada_timestamp = row.ot_resolucion_solicitada_timestamp;
+  ot_solicitud_timestamp = row.ot_solicitud_timestamp;
+  dialog.value = true;
+};
+
+const onCEnd = () => {
+  const [year, month, day] = fecha_resolucion_concretada.value.split("/");
+  const fecha_resolucion_concretada_date = new Date(
+    `${year}-${month}-${day} 00:00:00`
+  );
+  const payload = {
+    uuid: solicitud_uuid.value,
+    estado: 1,
+    ot_resolucion_concretada_fecha: useDateFormat(
+      fecha_resolucion_concretada_date,
+      "DD/MM/YYYY"
+    ).value,
+    ot_resolucion_concretada_timestamp: fecha_resolucion_concretada_date / 1000,
+    ot_resolucion_detalle: ot_resolucion_detalle.value.toUpperCase(),
+    resultado:
+      ot_resolucion_solicitada_timestamp >=
+      fecha_resolucion_concretada_date / 1000
+        ? true
+        : false,
+    ot_resolucion_name: name,
+    ot_resolucion_uid: uid,
+  };
+  dialog.value = false;
+  update(payload);
+  notify({
+    color: "green-6",
+    textColor: "white",
+    icon: "cloud_done",
+    message: "Solicitud Finalizada",
+    timeout: 1000,
+  });
+};
+
+const exportTable = async () => {
+  loading_his.value = true;
+  const content = [];
+  content.push([
+    "UNIDAD NEGOCIO",
+    "UNIDAD SERVICIO",
+    "ID",
+    "ESTADO",
+    "TIPO SOLICITUD",
+    "PLACA PATENTE",
+    "KILOMETRAJE",
+    "SISTEMA / COMPONENTE",
+    //"NUMERO ATENCION",
+    "FECHA SOLICITUD",
+    "HORA SOLICITUD",
+    "SOLICITANTE",
+    "FECHA RESOLUCION SOLICITADA",
+    "TALLER / PLANTA",
+    "DOMINIO",
+    "DETALLE SOLICITUD",
+    "FECHA RESOLUCION CONCRETADA",
+    "RESOLUTOR",
+    "DETALLE RESOLUCION",
+    "CAUSA ELIMINACION",
+  ]);
+  const registros = await gethistoric();
+  if (registros.length === 0) {
+    loading_his.value = false;
+    return notify({
+      color: "red-6",
+      textColor: "white",
+      icon: "error",
+      message: "No ha sido posible descargar histórico",
+      timeout: 1000,
+    });
+  }
+  for (const solicitud_diagnostico of registros) {
+    content.push([
+      solicitud_diagnostico.unidad_negocio,
+      solicitud_diagnostico.unidad_servicio,
+      solicitud_diagnostico.uuid,
+      solicitud_diagnostico.estado === 0
+        ? "En Proceso"
+        : solicitud_diagnostico.estado === 1
+        ? "Finalizada"
+        : solicitud_diagnostico.estado === 3
+        ? "Eliminada"
+        : "",
+      solicitud_diagnostico.tipo_solicitud,
+      solicitud_diagnostico.placa_patente,
+      solicitud_diagnostico.km_ejecucion,
+      solicitud_diagnostico.sistema_componente,
+      //solicitud_diagnostico.ot_numero,
+      solicitud_diagnostico.ot_solicitud_fecha,
+      solicitud_diagnostico.ot_solicitud_hora,
+      solicitud_diagnostico.ot_solicitud_name,
+      solicitud_diagnostico.ot_resolucion_solicitada_fecha,
+      solicitud_diagnostico.ot_taller_planta,
+      solicitud_diagnostico.dominio === "0"
+        ? "CARROCERIA"
+        : solicitud_diagnostico.dominio === "1"
+        ? "CHASIS"
+        : "CHASIS",
+      solicitud_diagnostico.ot_solicitud_detalle,
+      solicitud_diagnostico.ot_resolucion_concretada_fecha,
+      solicitud_diagnostico.ot_resolucion_name,
+      solicitud_diagnostico.ot_resolucion_detalle,
+      delete_map.get(solicitud_diagnostico.causa),
+    ]);
+  }
+  const data = stringify(content, {
+    delimiter: ";",
+    quoted_string: true,
+    bom: true,
+  });
+  exportFile("solicitud_diagnostico.csv", data, "text/csv");
+  loading_his.value = false;
+};
+watch(
+  () => m_solicitud_diagnostico_change.value,
+  async () => {
+    solicitud_diagnostico_arr.value = await getall();
+    if (m_solicitud_diagnostico_change.value > 0) loading.value = false;
+  },
+  { immediate: true }
+);
+</script>
