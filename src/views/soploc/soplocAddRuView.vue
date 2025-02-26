@@ -302,6 +302,12 @@ const repuesto_sistemacom = computed(
       repuesto_codigo.value?.toUpperCase()
     )?.[4]
 );
+const repuesto_marca = computed(
+  () =>
+    repuestos_map[dominio.value.value].get(
+      repuesto_codigo.value?.toUpperCase()
+    )?.[5]
+);
 
 const fecha_entrega_solicitada = ref(null);
 const dominio_options = [
@@ -430,7 +436,7 @@ const onSubmit_repuesto = () => {
   repuestos.value.push({
     sistema_componente: repuesto_sistemacom.value,
     tipo: "ORIGINAL",
-    marca: "VOLVO",
+    marca: repuesto_marca.value,
     codigo: repuesto_codigo.value.toUpperCase(),
     descripcion: repuesto_descripcion.value,
     cantidad: parseInt(repuesto_cantidad.value),

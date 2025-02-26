@@ -22,9 +22,9 @@ export default defineConfig({
         "images/google_logo.svg",
       ],
       manifest: {
-        name: "Redbus Certifica",
-        short_name: "Redbus Certifica",
-        description: "Redbus Certifica",
+        name: "Voy Certifica",
+        short_name: "Voy Certifica",
+        description: "Voy Certifica",
         theme_color: "#000000",
         background_color: "#000000",
         icons: [
