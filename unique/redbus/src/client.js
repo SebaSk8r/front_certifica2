@@ -13,13 +13,7 @@ const terminales_map = new Map([
   ["JOSE ARRIETA", ["13", -70.532064, -33.465142]],
   ["LO ECHEVERS", ["13", -70.762353, -33.375354]],
 ]);
-const terminales = [
-  "COLO COLO",
-  "EL ROBLE",
-  "EL SALTO",
-  "JOSE ARRIETA",
-  "LO ECHEVERS",
-];
+const terminales = ["COLO COLO", "EL ROBLE", "EL SALTO", "JOSE ARRIETA", "LO ECHEVERS"];
 const inspeccion_pautas = ["MP4-160", "MP1-200", "I-175", "R-20", "CORRECTIVO"];
 const meses_estado_general = 3;
 const meses_inspeccion_tecnica = 6;
@@ -27,6 +21,13 @@ const dashboard_link = "https://app.powerbi.com/home";
 const revdoc_map = new Map([
   [true, "CUMPLE"],
   [false, "NO CUMPLE"],
+]);
+const traspaso_version = "0";
+const traspaso_xtipo = false;
+const contratos = new Map([
+  ["A2", "L024-U55-O04"],
+  ["B2", "L024-U55-O05"],
+  ["C2", "L024-U55-O06"],
 ]);
 export {
   client,
@@ -41,4 +42,7 @@ export {
   unidad_map,
   terminales_map,
   revdoc_map,
+  traspaso_version,
+  traspaso_xtipo,
+  contratos,
 };

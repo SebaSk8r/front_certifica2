@@ -5,22 +5,12 @@ import { ref } from "vue";
 import { db, functions } from "@/firebase";
 import { httpsCallable } from "firebase/functions";
 
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  doc,
-  writeBatch,
-  serverTimestamp,
-  getDocsFromCache,
-  orderBy,
-} from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, writeBatch, serverTimestamp, getDocsFromCache, orderBy } from "firebase/firestore";
 export const useMprevStore = defineStore("mprevStore", () => {
   const m_mant_prev_change = ref(0);
   let unsubscribe = () => {};
   const date = new Date();
-  date.setMonth(date.getMonth() - 3);
+  date.setMonth(date.getMonth() - 1);
   date.setDate(1); //Primer dia del mes
   const timestamp = useStorage("mant_prev_timestamp", date);
 
@@ -57,10 +47,7 @@ export const useMprevStore = defineStore("mprevStore", () => {
     m_mant_prev_change.value++;
   };
   const getall = async () => {
-    const q = query(
-      collection(db, "mantenimiento_preventivo"),
-      where("ot_apertura_timestamp", ">=", date.getTime() / 1000)
-    );
+    const q = query(collection(db, "mantenimiento_preventivo"), where("ot_apertura_timestamp", ">=", date.getTime() / 1000));
     const docsRef = await getDocsFromCache(q);
     const docs = [];
     for (const doc of docsRef.docs) {
@@ -75,7 +62,8 @@ export const useMprevStore = defineStore("mprevStore", () => {
     const q = query(
       collection(db, "mantenimiento_preventivo"),
       where("ot_apertura_timestamp", ">=", date.getTime() / 1000),
-      where("resultado", "==", false)
+      where("resultado", "==", false),
+      where("estado", "==", 1)
     );
     const docsRef = await getDocsFromCache(q);
     const incumple = new Set();
@@ -111,8 +99,7 @@ export const useMprevStore = defineStore("mprevStore", () => {
         let curr_timestamp = timestamp.value;
         snapshot.docChanges().forEach((change) => {
           const data = change.doc.data();
-          if (data.timestamp && data.timestamp.toDate() > curr_timestamp)
-            curr_timestamp = data.timestamp.toDate();
+          if (data.timestamp && data.timestamp.toDate() > curr_timestamp) curr_timestamp = data.timestamp.toDate();
         });
         timestamp.value = curr_timestamp;
         m_mant_prev_change.value++;

@@ -88,7 +88,7 @@
           <q-select
             v-model="ano"
             label="AÑO INFORME"
-            :options="['2023', '2024']"
+            :options="['2023', '2024', '2025']"
             dense
             :rules="[
               (val) => (val && val.length > 0) || 'Este campo es obligatorio.',

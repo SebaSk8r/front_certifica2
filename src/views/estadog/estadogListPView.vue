@@ -15,30 +15,10 @@
     loading-label="Cargando.."
   >
     <template v-slot:top>
-      <q-btn
-        color="primary"
-        label="Programa"
-        class="q-mr-sm"
-        @click="exportTable(false)"
-        :loading="loading_hisp"
-      />
-      <q-btn
-        color="dark"
-        label="Histórico"
-        class="q-mr-sm"
-        @click="exportTable(true)"
-        :loading="loading_his"
-      />
+      <q-btn color="primary" label="Programa" class="q-mr-sm" @click="exportTable(false)" :loading="loading_hisp" />
+      <q-btn color="dark" label="Histórico" class="q-mr-sm" @click="exportTable(true)" :loading="loading_his" />
       <q-space />
-      <q-input
-        debounce="500"
-        dense
-        v-model="filter"
-        label="Filtrar"
-        type="search"
-        style="max-width: 50%"
-        input-class="text-uppercase"
-      >
+      <q-input debounce="500" dense v-model="filter" label="Filtrar" type="search" style="max-width: 50%" input-class="text-uppercase">
         <template v-slot:append>
           <q-icon name="search" />
         </template>
@@ -106,8 +86,7 @@ const columns = [
     field: (row) =>
       row.estado === 0 && row.fecha_programa_timestamp >= date.getTime() / 1000
         ? "En Plazo"
-        : row.estado === 0 &&
-          row.fecha_caduca_timestamp >= date.getTime() / 1000
+        : row.estado === 0 && row.fecha_caduca_timestamp >= date.getTime() / 1000
         ? "Por Vencer"
         : row.estado === 0 && row.fecha_caduca_timestamp < date.getTime() / 1000
         ? "Vencida"
@@ -150,15 +129,14 @@ const columns = [
   {
     name: "numero_interno",
     label: "Numero Interno",
-    field: (row) => buses[row.placa_patente][0],
+    field: (row) => buses?.[row.placa_patente]?.[0],
     align: "center",
     sortable: true,
   },
   {
     name: "certifica_inicio",
     label: "Resultado Actual",
-    field: (row) =>
-      row.certifica_inicio === true ? "Aprobado" : "No Aprobado",
+    field: (row) => (row.certifica_inicio === true ? "Aprobado" : "No Aprobado"),
     align: "center",
     sortable: true,
   },
@@ -181,9 +159,7 @@ const columns = [
     label: "Dias Restantes",
     field: (row) =>
       row.estado === 0 && row.fecha_caduca_timestamp > date.getTime() / 1000
-        ? Math.trunc(
-            (row.fecha_caduca_timestamp - date.getTime() / 1000) / (3600 * 24)
-          )
+        ? Math.trunc((row.fecha_caduca_timestamp - date.getTime() / 1000) / (3600 * 24))
         : row.estado === 0
         ? 0
         : "",
@@ -250,12 +226,7 @@ const columns = [
   {
     name: "certifica_termino",
     label: "Resultado",
-    field: (row) =>
-      row.certifica_termino === true
-        ? "Aprobado"
-        : row.certifica_termino === false
-        ? "No Aprobado"
-        : "",
+    field: (row) => (row.certifica_termino === true ? "Aprobado" : row.certifica_termino === false ? "No Aprobado" : ""),
     align: "center",
     sortable: true,
   },
@@ -320,14 +291,11 @@ const exportTable = async (historic) => {
       registro.unidad_negocio,
       registro.unidad_servicio,
       registro.uuid,
-      registro.estado === 0 &&
-      registro.fecha_programa_timestamp >= date.getTime() / 1000
+      registro.estado === 0 && registro.fecha_programa_timestamp >= date.getTime() / 1000
         ? "En Plazo"
-        : registro.estado === 0 &&
-          registro.fecha_caduca_timestamp >= date.getTime() / 1000
+        : registro.estado === 0 && registro.fecha_caduca_timestamp >= date.getTime() / 1000
         ? "Por Vencer"
-        : registro.estado === 0 &&
-          registro.fecha_caduca_timestamp < date.getTime() / 1000
+        : registro.estado === 0 && registro.fecha_caduca_timestamp < date.getTime() / 1000
         ? "Vencida"
         : registro.estado === 1
         ? "Finalizada"
@@ -337,15 +305,11 @@ const exportTable = async (historic) => {
       registro.fecha_inicio,
       registro.lugar_inspeccion,
       registro.placa_patente,
-      buses[registro.placa_patente][0],
+      buses?.[registro.placa_patente]?.[0],
       registro.certifica_inicio === true ? "Aprobado" : "No Aprobado",
       registro.fecha_programa,
-      registro.estado === 0 &&
-      registro.fecha_caduca_timestamp > date.getTime() / 1000
-        ? Math.trunc(
-            (registro.fecha_caduca_timestamp - date.getTime() / 1000) /
-              (3600 * 24)
-          )
+      registro.estado === 0 && registro.fecha_caduca_timestamp > date.getTime() / 1000
+        ? Math.trunc((registro.fecha_caduca_timestamp - date.getTime() / 1000) / (3600 * 24))
         : registro.estado === 0
         ? 0
         : "",
@@ -353,11 +317,7 @@ const exportTable = async (historic) => {
       registro.fecha_nopresenta.at(-2),
       registro.fecha_nopresenta.at(-1),
       registro.fecha_termino,
-      registro.certifica_termino === true
-        ? "Aprobado"
-        : registro.certifica_termino === false
-        ? "Aprobado"
-        : "",
+      registro.certifica_termino === true ? "Aprobado" : registro.certifica_termino === false ? "Aprobado" : "",
     ]);
   }
   const data = stringify(content, {

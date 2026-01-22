@@ -12,15 +12,7 @@ const terminales_map = new Map([
   ["SAN ALFONSO", ["2", -70.674038, -33.470664]],
   ["CATEMITO", ["2", -70.7137764, -33.6112888]],
 ]);
-const terminales = [
-  "RECOLETA",
-  "LIBERTADORES",
-  "SANTA ROSA",
-  "PIE ANDINO",
-  "SAN JOSE",
-  "SAN ALFONSO",
-  "CATEMITO",
-];
+const terminales = ["RECOLETA", "LIBERTADORES", "SANTA ROSA", "PIE ANDINO", "SAN JOSE", "SAN ALFONSO", "CATEMITO"];
 const inspeccion_pautas = [
   "H_ADMISION_25_B8",
   "H_ADMISION_25_B8A",
@@ -85,6 +77,9 @@ const revdoc_map = new Map([
   [true, "CUMPLE"],
   [false, "NO CUMPLE"],
 ]);
+const traspaso_version = "0";
+const traspaso_xtipo = false;
+const contratos = new Map();
 export {
   client,
   unidad_servicio,
@@ -98,4 +93,7 @@ export {
   unidad_map,
   terminales_map,
   revdoc_map,
+  traspaso_version,
+  traspaso_xtipo,
+  contratos,
 };

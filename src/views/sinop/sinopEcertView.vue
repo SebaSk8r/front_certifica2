@@ -407,6 +407,10 @@ watch(
           ],
         };
       const posicion = m_posicion.get(key);
+      if (!posicion) {
+        console.warn(`No se encontró posición para el bus ${key}`);
+        continue;
+      }
       let distancia = "";
       if (
         isFinite(coords.value.longitude) &&
@@ -433,6 +437,7 @@ watch(
       );
       inspec_cdate.setMonth(inspec_cdate.getMonth() + meses_inspeccion_tecnica);
 
+      console.log("paso");
       arr.push([
         value[17],
         key,

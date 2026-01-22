@@ -1,7 +1,7 @@
 <template>
   <q-table
     title="Registros"
-    :rows="estado_general_arr"
+    :rows="estado_general_sort"
     :columns="columns"
     :filter="filter"
     row-key="uuid"
@@ -15,30 +15,10 @@
     loading-label="Cargando.."
   >
     <template v-slot:top>
-      <q-btn
-        v-if="!only_view"
-        color="primary"
-        to="/estadog/add"
-        label="Agregar"
-        class="q-mr-sm"
-      />
-      <q-btn
-        color="dark"
-        label="Histórico"
-        class="q-mr-sm"
-        @click="exportTable"
-        :loading="loading_his"
-      />
+      <q-btn v-if="!only_view" color="primary" to="/estadog/add" label="Agregar" class="q-mr-sm" />
+      <q-btn color="dark" label="Histórico" class="q-mr-sm" @click="exportTable" :loading="loading_his" />
       <q-space />
-      <q-input
-        debounce="500"
-        dense
-        v-model="filter"
-        label="Filtrar"
-        type="search"
-        style="max-width: 50%"
-        input-class="text-uppercase"
-      >
+      <q-input debounce="500" dense v-model="filter" label="Filtrar" type="search" style="max-width: 50%" input-class="text-uppercase">
         <template v-slot:append>
           <q-icon name="search" />
         </template>
@@ -52,53 +32,15 @@
     </template>
     <template v-slot:body-cell-actions="props">
       <q-td :props="props">
-        <q-btn
-          v-if="!only_view"
-          color="primary"
-          icon="edit"
-          flat
-          dense
-          @click="onEdit(props.row)"
-        />
-        <q-btn
-          color="green"
-          icon="search"
-          flat
-          dense
-          @click="onSearch(props.row)"
-        />
-        <q-btn
-          v-if="!only_view"
-          color="negative"
-          icon="delete"
-          flat
-          dense
-          @click="onDelete(props.row)"
-        />
-        <q-btn
-          v-if="admin"
-          color="accent"
-          icon="change_circle"
-          flat
-          dense
-          @click="onChange(props.row)"
-        />
-        <q-btn
-          color="indigo"
-          icon="construction"
-          flat
-          dense
-          @click="onRepair(props.row)"
-        />
+        <q-btn v-if="!only_view" color="primary" icon="edit" flat dense @click="onEdit(props.row)" />
+        <q-btn color="green" icon="search" flat dense @click="onSearch(props.row)" />
+        <q-btn v-if="!only_view" color="negative" icon="delete" flat dense @click="onDelete(props.row)" />
+        <q-btn v-if="admin" color="accent" icon="change_circle" flat dense @click="onChange(props.row)" />
+        <q-btn color="indigo" icon="construction" flat dense @click="onRepair(props.row)" />
       </q-td>
     </template>
   </q-table>
-  <q-dialog
-    v-model="dialog_repair"
-    transition-show="scale"
-    transition-hide="scale"
-    persistent
-  >
+  <q-dialog v-model="dialog_repair" transition-show="scale" transition-hide="scale" persistent>
     <q-card>
       <q-form @submit="onCRepair()">
         <q-linear-progress :value="1.0" color="primary"></q-linear-progress>
@@ -109,14 +51,7 @@
               <div class="text-grey">{{ estado_uuid }}</div>
             </div>
           </div>
-          <q-btn
-            flat
-            round
-            color="dark"
-            icon="cancel"
-            v-close-popup
-            @click="causa = null"
-          >
+          <q-btn flat round color="dark" icon="cancel" v-close-popup @click="causa = null">
             <q-tooltip class="bg-dark" :offset="[0, 5]">Cancelar</q-tooltip>
           </q-btn>
           <q-btn flat round color="indigo" icon="construction" type="submit">
@@ -252,30 +187,21 @@ const columns = [
   {
     name: "dbaja",
     label: "Defectos Bajos",
-    field: (row) =>
-      isNaN(row?.total_lows - row?.curr_lows)
-        ? ""
-        : row.total_lows - row.curr_lows,
+    field: (row) => (isNaN(row?.total_lows - row?.curr_lows) ? "" : row.total_lows - row.curr_lows),
     align: "center",
     sortable: true,
   },
   {
     name: "dmedia",
     label: "Defectos Medios",
-    field: (row) =>
-      isNaN(row?.total_mediums - row?.curr_mediums)
-        ? ""
-        : row.total_mediums - row.curr_mediums,
+    field: (row) => (isNaN(row?.total_mediums - row?.curr_mediums) ? "" : row.total_mediums - row.curr_mediums),
     align: "center",
     sortable: true,
   },
   {
     name: "dalta",
     label: "Defectos Altos",
-    field: (row) =>
-      isNaN(row?.total_highs - row?.curr_highs)
-        ? ""
-        : row.total_highs - row.curr_highs,
+    field: (row) => (isNaN(row?.total_highs - row?.curr_highs) ? "" : row.total_highs - row.curr_highs),
     align: "center",
     sortable: true,
   },
@@ -329,11 +255,7 @@ const columns = [
     name: "fecha2",
     label: "Periodo Cura",
     field: (row) =>
-      row.resultado.length === 2
-        ? row.resultado[1].fecha
-        : row.resultado.length > 0 && row.resultado[0].certifica === null
-        ? row.fecha_reins
-        : "",
+      row.resultado.length === 2 ? row.resultado[1].fecha : row.resultado.length > 0 && row.resultado[0].certifica === null ? row.fecha_reins : "",
     align: "center",
     sortable: true,
     sort: (a, b) => {
@@ -397,16 +319,27 @@ const columns = [
     field: "fecha_inicio_timestamp",
   },
 ];
+//Función de ordenamiento descendente que utiliza fecha_termino_timestamp si existe, de lo contrario fecha_inicio_timestamp
+const customSort = (rows) => {
+  const getTimestamp = (row) => (row.fecha_termino_timestamp ? parseFloat(row.fecha_termino_timestamp) : parseFloat(row.fecha_inicio_timestamp));
+  const data = [...rows];
+  data.sort((a, b) => {
+    return getTimestamp(b) - getTimestamp(a);
+  });
+  return data;
+};
+
 const pagination = ref({
-  sortBy: "fecha_inicio_timestamp",
-  descending: true,
+  //sortBy: "fecha_termino_timestamp",
+  //descending: true,
+  //sortMethod: customSort,
   page: 1,
   rowsPerPage: 7,
 });
 
 const { m_estado_general_change } = storeToRefs(useEstadogStore());
 const { update, removep, addp, getall, gethistoric } = useEstadogStore();
-const estado_general_arr = shallowRef([]);
+const estado_general_sort = shallowRef([]); //Custom Sort
 const { notify } = useQuasar();
 const { uid, only_view, admin, name } = useUserStore();
 const filter = ref("");
@@ -419,9 +352,7 @@ let fecha_reins_timestamp = 0;
 
 //Funcion que suma dias laborales a una fecha dada
 const addWorkDays = (date, days) => {
-  while (days)
-    ![6, 0].includes(date.getUTCDay(date.setUTCDate(date.getUTCDate() + 1))) &&
-      days--;
+  while (days) ![6, 0].includes(date.getUTCDay(date.setUTCDate(date.getUTCDate() + 1))) && days--;
   date.setHours(0, 0, 0); //Dado que seteamos en 0 horas, 0 minutos, 0 segundos days debe ser +1
   return date;
 };
@@ -605,15 +536,9 @@ const exportTable = async () => {
       estado.placa_patente,
       estado.kilometraje,
       estado.user_name,
-      isNaN(estado?.total_lows - estado?.curr_lows)
-        ? ""
-        : estado.total_lows - estado.curr_lows,
-      isNaN(estado?.total_mediums - estado?.curr_mediums)
-        ? ""
-        : estado.total_mediums - estado.curr_mediums,
-      isNaN(estado?.total_highs - estado?.curr_highs)
-        ? ""
-        : estado.total_highs - estado.curr_highs,
+      isNaN(estado?.total_lows - estado?.curr_lows) ? "" : estado.total_lows - estado.curr_lows,
+      isNaN(estado?.total_mediums - estado?.curr_mediums) ? "" : estado.total_mediums - estado.curr_mediums,
+      isNaN(estado?.total_highs - estado?.curr_highs) ? "" : estado.total_highs - estado.curr_highs,
       estado?.defectos?.join(","),
       estado.resultado.length > 0 && estado.resultado[0]?.causa === 0
         ? "No Aprobado/No Presentado"
@@ -650,7 +575,8 @@ const exportTable = async () => {
 watch(
   () => m_estado_general_change.value,
   async () => {
-    estado_general_arr.value = await getall(false);
+    const estado_general_arr = await getall(false);
+    estado_general_sort.value = customSort(estado_general_arr);
     if (m_estado_general_change.value > 0) loading.value = false;
   },
   { immediate: true }

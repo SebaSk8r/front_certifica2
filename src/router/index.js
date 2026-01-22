@@ -207,6 +207,79 @@ const routes = [
         ],
       },
       {
+        path: "trasp",
+        name: "trasp",
+        redirect: "/trasp/list",
+        meta: {
+          requiresAuth: true,
+          desc: "Traspaso Menor",
+        },
+        children: [
+          {
+            path: "add",
+            name: "trasp_add",
+            component: () => import("../views/trasp/traspAddView.vue"),
+          },
+          {
+            path: "list",
+            name: "trasp_list",
+            component: () => import("../views/trasp/traspListView.vue"),
+          },
+          {
+            path: "det/:uuid/:view?",
+            name: "trasp_det",
+            component: () => import("../views/trasp/traspDetView.vue"),
+          },
+        ],
+      },
+      {
+        path: "traspN",
+        name: "traspN",
+        redirect: "/traspn/list",
+        meta: {
+          requiresAuth: true,
+          desc: "Traspaso Menor",
+        },
+        children: [
+          {
+            path: "add",
+            name: "traspn_add",
+            component: () => import("../views/trasp/traspNAddView.vue"),
+          },
+          {
+            path: "list",
+            name: "traspn_list",
+            component: () => import("../views/trasp/traspNListView.vue"),
+          },
+          {
+            path: "det/:uuid/:view?",
+            name: "traspn_det",
+            component: () => import("../views/trasp/traspNDetView.vue"),
+          },
+        ],
+      },
+      {
+        path: "traspM",
+        name: "traspM",
+        redirect: "/traspm/list",
+        meta: {
+          requiresAuth: true,
+          desc: "Traspaso Mayor",
+        },
+        children: [
+          {
+            path: "list",
+            name: "traspm_list",
+            component: () => import("../views/trasp/traspMListView.vue"),
+          },
+          {
+            path: "det/:uuid/:view?",
+            name: "traspm_det",
+            component: () => import("../views/trasp/traspMDetView.vue"),
+          },
+        ],
+      },
+      {
         path: "repres",
         name: "repres",
         redirect: "/repres/list",

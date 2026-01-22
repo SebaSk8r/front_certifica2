@@ -354,6 +354,10 @@ const estado = ref(1);
 const estado_desc = ref(null);
 
 const fecha_reins = ref(null);
+
+const hora_reins = ref(null);
+const fecha_reins_timestamp = ref(null);
+
 const view = ref(false);
 const options_list = shallowRef([]);
 const options_all = ref([]);
@@ -451,6 +455,10 @@ const onSubmit = () => {
       day: "2-digit",
       year: "numeric",
     });
+    hora_reins.value = new Date(
+      Date.now() + 3600 * 1000 * 24 * 3
+    ).toLocaleTimeString("en-GB", { hour12: false });
+    fecha_reins_timestamp.value = (Date.now() + 3600 * 1000 * 24 * 3) / 1000;
   } else if (
     total_lows.value - curr_lows.value > 0 &&
     curr_estado.value === 0
@@ -463,6 +471,10 @@ const onSubmit = () => {
       day: "2-digit",
       year: "numeric",
     });
+    hora_reins.value = new Date(
+      Date.now() + 3600 * 1000 * 24 * 5
+    ).toLocaleTimeString("en-GB", { hour12: false });
+    fecha_reins_timestamp.value = (Date.now() + 3600 * 1000 * 24 * 5) / 1000;
   } else certifica.value = true;
 
   estado_desc.value =
@@ -505,6 +517,9 @@ const onConfirm = () => {
     estado: estado.value,
     obs_inspeccion: obs_inspeccion.value,
     fecha_reins: fecha_reins.value,
+    hora_reins: hora_reins.value,
+    fecha_reins_timestamp: fecha_reins_timestamp.value,
+
     resultado: resultado,
     fecha_termino:
       estado.value === 1
@@ -658,6 +673,9 @@ invoke(async () => {
     curr_estado.value = inspec["estado"];
     curr_resultado.value = inspec["resultado"];
     fecha_reins.value = inspec["fecha_reins"];
+    hora_reins.value = inspec["hora_reins"] || null;
+    fecha_reins_timestamp.value = inspec["fecha_reins_timestamp"] || null;
+
     materiales.value = inspec["materiales"];
 
     //Cargamos options

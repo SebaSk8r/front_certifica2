@@ -52,9 +52,7 @@ export const useEstadogStore = defineStore("estadogStore", () => {
     return docs;
   };
   const getestado = async (payload) => {
-    const docRef = await getDocFromCache(
-      doc(db, "estado_general_p", payload.uuid)
-    );
+    const docRef = await getDocFromCache(doc(db, "estado_general_p", payload.uuid));
     return docRef.data().values;
   };
   //Map por placa patente (finalizadas)
@@ -64,11 +62,7 @@ export const useEstadogStore = defineStore("estadogStore", () => {
     const docsRef = await getDocsFromCache(q);
     for (const doc of docsRef.docs) {
       const data = doc.data();
-      if (
-        !last.has(data.placa_patente) ||
-        last.get(data.placa_patente).fecha_inicio_timestamp <
-          data.fecha_inicio_timestamp
-      )
+      if (!last.has(data.placa_patente) || last.get(data.placa_patente).fecha_termino_timestamp < data.fecha_termino_timestamp)
         last.set(data.placa_patente, data);
     }
     return last;
@@ -140,8 +134,7 @@ export const useEstadogStore = defineStore("estadogStore", () => {
         let curr_timestamp = timestamp.value;
         snapshot.docChanges().forEach((change) => {
           const data = change.doc.data();
-          if (data.timestamp && data.timestamp.toDate() > curr_timestamp)
-            curr_timestamp = data.timestamp.toDate();
+          if (data.timestamp && data.timestamp.toDate() > curr_timestamp) curr_timestamp = data.timestamp.toDate();
           if (route.params.uuid === data.uuid) m_estado_generald_change.value++;
         });
         timestamp.value = curr_timestamp;
@@ -155,10 +148,7 @@ export const useEstadogStore = defineStore("estadogStore", () => {
     );
   };
   const bind_p = () => {
-    const q = query(
-      collection(db, "estado_general_p"),
-      where("unidad_negocio", "==", unidad_negocio)
-    );
+    const q = query(collection(db, "estado_general_p"), where("unidad_negocio", "==", unidad_negocio));
     unsubscribe_p = onSnapshot(q, () => m_estado_generalp_change.value++);
   };
   const unbind = () => unsubscribe();

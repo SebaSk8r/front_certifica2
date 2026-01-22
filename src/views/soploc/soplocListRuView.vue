@@ -16,30 +16,10 @@
       loading-label="Cargando.."
     >
       <template v-slot:top>
-        <q-btn
-          v-if="srepu"
-          color="primary"
-          to="/soplocRu/add"
-          label="Agregar"
-          class="q-mr-sm"
-        />
-        <q-btn
-          color="dark"
-          label="Histórico"
-          class="q-mr-sm"
-          @click="exportTable"
-          :loading="loading_his"
-        />
+        <q-btn v-if="srepu" color="primary" to="/soplocRu/add" label="Agregar" class="q-mr-sm" />
+        <q-btn color="dark" label="Histórico" class="q-mr-sm" @click="exportTable" :loading="loading_his" />
         <q-space />
-        <q-input
-          debounce="500"
-          dense
-          v-model="filter"
-          label="Filtrar"
-          type="search"
-          style="max-width: 50%"
-          input-class="text-uppercase"
-        >
+        <q-input debounce="500" dense v-model="filter" label="Filtrar" type="search" style="max-width: 50%" input-class="text-uppercase">
           <template v-slot:append>
             <q-icon name="search" />
           </template>
@@ -53,59 +33,50 @@
       </template>
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
-          <q-btn
-            v-if="sumi"
-            color="primary"
-            icon="event"
-            flat
-            dense
-            @click="onEnd(props.row)"
-          />
-          <q-btn
-            v-if="sumi || srepu"
-            color="negative"
-            icon="delete"
-            flat
-            dense
-            @click="onDelete(props.row)"
-          />
+          <q-btn v-if="sumi" color="primary" icon="event" flat dense @click="onEnd(props.row)" />
+          <q-btn v-if="sumi || srepu" color="negative" icon="delete" flat dense @click="onDelete(props.row)" />
         </q-td>
       </template>
     </q-table>
   </div>
-  <q-dialog
-    v-model="dialog"
-    transition-show="scale"
-    transition-hide="scale"
-    persistent
-  >
-    <q-date
-      v-model="fecha_entrega_concretada"
-      :subtitle="solicitud_uuid"
-      :options="optionsFn"
-      :events="eventsFn"
-      :event-color="eventsCFn"
-    >
-      <div class="row items-center justify-center q-gutter-sm">
-        <q-btn color="dark" label="Cancelar" class="q-mr-sm" v-close-popup />
-        <q-btn
-          color="primary"
-          label="Finalizar"
-          class="q-mr-sm"
-          @click="onCEnd()"
-          :disable="!fecha_entrega_concretada"
-          v-close-popup
-        />
-      </div>
-    </q-date>
+  <q-dialog v-model="dialog" transition-show="scale" transition-hide="scale" persistent>
+    <div class="q-gutter-md row items-start">
+      <q-date
+        v-if="!showTime"
+        v-model="fecha_entrega_concretada"
+        :title="fh_concretada ? useDateFormat(fh_concretada, 'DD/MM/YYYY HH:mm').value : ''"
+        :subtitle="solicitud_uuid"
+        :options="optionsFn"
+        :events="eventsFn"
+        :event-color="eventsCFn"
+        @update:model-value="onDateSelected"
+      >
+        <div class="row items-center justify-center q-gutter-sm">
+          <q-btn
+            color="dark"
+            label="Cancelar"
+            class="q-mr-sm"
+            @click="
+              showTime = false;
+              dialog = false;
+            "
+            v-close-popup
+          />
+          <q-btn
+            color="primary"
+            label="Finalizar"
+            class="q-mr-sm"
+            @click="onCEnd()"
+            :disable="!fecha_entrega_concretada || !hora_entrega_concretada"
+            v-close-popup
+          />
+        </div>
+      </q-date>
+      <q-time v-if="showTime" v-model="hora_entrega_concretada" @update:model-value="showTime = false"> </q-time>
+    </div>
   </q-dialog>
 
-  <q-dialog
-    v-model="dialog_del"
-    transition-show="scale"
-    transition-hide="scale"
-    persistent
-  >
+  <q-dialog v-model="dialog_del" transition-show="scale" transition-hide="scale" persistent>
     <q-card>
       <q-form @submit="onCDelete()">
         <q-linear-progress :value="1.0" color="negative"></q-linear-progress>
@@ -140,18 +111,22 @@
 import { useQuasar } from "quasar";
 import { useSrepuStore } from "@/store/srepuStore";
 import { storeToRefs } from "pinia";
-import { ref, watch, shallowRef } from "vue";
+import { ref, watch, shallowRef, computed } from "vue";
 import { exportFile } from "quasar";
 import { useUserStore } from "@/store/userStore";
 import { stringify } from "csv-stringify/browser/esm/sync";
 import { useDateFormat } from "@vueuse/core";
+import { contratos } from "@/client";
+import buses from "@/assets/json/buses.json";
 
 const visible_cols = [
   "unidad_negocio",
   "unidad_servicio",
+  "contrato",
   "uuid",
   "estado",
   "tipo_solicitud",
+  "motivo_solicitud",
   "sistema_componente",
   "co_numero",
   "oc_numero",
@@ -159,6 +134,7 @@ const visible_cols = [
   "oc_solicitud_hora",
   "oc_solicitud_name",
   "oc_entrega_solicitada_fecha",
+  "oc_entrega_solicitada_hora",
   "oc_taller_planta",
   "dominio",
   "repuesto_tipo",
@@ -167,8 +143,12 @@ const visible_cols = [
   "repuesto_descripcion",
   "repuesto_medida",
   "repuesto_cantidad",
+  "placa_patente",
+  "numero_interno",
+  "numero_vin",
   "tipo_bus",
   "oc_entrega_concretada_fecha",
+  "oc_entrega_concretada_hora",
   "oc_entrega_name",
   "causa",
   "hasPendingWrites",
@@ -188,6 +168,13 @@ const columns = [
     align: "center",
   },
   {
+    name: "contrato",
+    label: "Contrato",
+    field: (row) => contratos.get(row.tipo_bus) || "",
+    align: "center",
+    sortable: true,
+  },
+  {
     name: "uuid",
     label: "ID",
     field: "uuid",
@@ -196,14 +183,7 @@ const columns = [
   {
     name: "estado",
     label: "Estado",
-    field: (row) =>
-      row.estado === 0
-        ? "En Proceso"
-        : row.estado === 1
-        ? "Finalizada"
-        : row.estado === 3
-        ? "Eliminada"
-        : "",
+    field: (row) => (row.estado === 0 ? "En Proceso" : row.estado === 1 ? "Finalizada" : row.estado === 3 ? "Eliminada" : ""),
     align: "center",
     sortable: true,
   },
@@ -211,6 +191,12 @@ const columns = [
     name: "tipo_solicitud",
     label: "Tipo Solicitud",
     field: "tipo_solicitud",
+    align: "center",
+  },
+  {
+    name: "motivo_solicitud",
+    label: "Motivo Solicitud",
+    field: (row) => motivo_map.get(row.motivo_solicitud) || "",
     align: "center",
   },
   {
@@ -256,6 +242,12 @@ const columns = [
     align: "center",
   },
   {
+    name: "oc_entrega_solicitada_hora",
+    label: "Hora Entrega Solicitada",
+    field: "oc_entrega_solicitada_hora",
+    align: "center",
+  },
+  {
     name: "oc_taller_planta",
     label: "Taller / Planta",
     field: "oc_taller_planta",
@@ -264,12 +256,7 @@ const columns = [
   {
     name: "dominio",
     label: "Dominio",
-    field: (row) =>
-      row.dominio === "0"
-        ? "CARROCERIA"
-        : row.dominio === "1"
-        ? "CHASIS"
-        : "CHASIS",
+    field: (row) => (row.dominio === "0" ? "CARROCERIA" : row.dominio === "1" ? "CHASIS" : "CHASIS"),
     align: "center",
     sortable: true,
   },
@@ -310,6 +297,25 @@ const columns = [
     align: "center",
   },
   {
+    name: "placa_patente",
+    label: "Placa Patente",
+    field: "placa_patente",
+    align: "center",
+  },
+  {
+    name: "numero_interno",
+    label: "Numero Interno",
+    field: (row) => buses?.[row.placa_patente]?.[0],
+    align: "center",
+    sortable: true,
+  },
+  {
+    name: "numero_vin",
+    label: "Numero VIN",
+    field: (row) => buses?.[row.placa_patente]?.[2],
+    align: "center",
+  },
+  {
     name: "tipo_bus",
     label: "Tipo de Bus",
     field: "tipo_bus",
@@ -319,6 +325,12 @@ const columns = [
     name: "oc_entrega_concretada_fecha",
     label: "Fecha Entrega Concretada",
     field: "oc_entrega_concretada_fecha",
+    align: "center",
+  },
+  {
+    name: "oc_entrega_concretada_hora",
+    label: "Hora Entrega Concretada",
+    field: "oc_entrega_concretada_hora",
     align: "center",
   },
   {
@@ -364,9 +376,11 @@ const dialog = ref(false);
 const dialog_del = ref(false);
 const solicitud_uuid = ref(false);
 const fecha_entrega_concretada = ref(null);
+const hora_entrega_concretada = ref(null);
 let oc_entrega_solicitada_timestamp = null;
 let oc_solicitud_timestamp = null;
 const causa = ref(null);
+const showTime = ref(false);
 
 const delete_options = [
   {
@@ -404,27 +418,31 @@ const delete_map = new Map([
   [6, "ORDEN DE COMPRA NO EXISTE"],
 ]);
 
+const motivo_map = new Map([
+  [0, "STOCK"],
+  [1, "REPARACIÓN"],
+]);
+
+const onDateSelected = () => {
+  hora_entrega_concretada.value = null;
+  showTime.value = true;
+};
+
+const fh_concretada = computed(() => {
+  if (!fecha_entrega_concretada.value || !hora_entrega_concretada.value) return null;
+  const [year, month, day] = fecha_entrega_concretada.value.split("/");
+  const [hour, minute] = hora_entrega_concretada.value.split(":");
+  return new Date(year, month - 1, day, hour, minute);
+});
+
 const optionsFn = (date) => {
-  return (
-    date >=
-    useDateFormat(new Date(oc_solicitud_timestamp * 1000), "YYYY/MM/DD").value
-  );
+  return date >= useDateFormat(new Date(oc_solicitud_timestamp * 1000), "YYYY/MM/DD").value;
 };
 const eventsFn = (date) => {
-  return (
-    date >=
-    useDateFormat(new Date(oc_solicitud_timestamp * 1000), "YYYY/MM/DD").value
-  );
+  return date >= useDateFormat(new Date(oc_solicitud_timestamp * 1000), "YYYY/MM/DD").value;
 };
 const eventsCFn = (date) => {
-  if (
-    date <=
-    useDateFormat(
-      new Date(oc_entrega_solicitada_timestamp * 1000),
-      "YYYY/MM/DD"
-    ).value
-  )
-    return "teal";
+  if (date <= useDateFormat(new Date(oc_entrega_solicitada_timestamp * 1000), "YYYY/MM/DD").value) return "teal";
   else return "red";
 };
 
@@ -478,22 +496,13 @@ const onEnd = (row) => {
 };
 
 const onCEnd = () => {
-  const [year, month, day] = fecha_entrega_concretada.value.split("/");
-  const fecha_entrega_concretada_date = new Date(
-    `${year}-${month}-${day} 00:00:00`
-  );
   const payload = {
     uuid: solicitud_uuid.value,
     estado: 1,
-    oc_entrega_concretada_fecha: useDateFormat(
-      fecha_entrega_concretada_date,
-      "DD/MM/YYYY"
-    ).value,
-    oc_entrega_concretada_timestamp: fecha_entrega_concretada_date / 1000,
-    resultado:
-      oc_entrega_solicitada_timestamp >= fecha_entrega_concretada_date / 1000
-        ? true
-        : false,
+    oc_entrega_concretada_fecha: useDateFormat(fh_concretada.value, "DD/MM/YYYY").value,
+    oc_entrega_concretada_hora: useDateFormat(fh_concretada.value, "HH:mm").value,
+    oc_entrega_concretada_timestamp: fh_concretada.value / 1000,
+    resultado: oc_entrega_solicitada_timestamp >= fh_concretada.value / 1000 ? true : false,
     oc_entrega_name: name,
     oc_entrega_uid: uid,
   };
@@ -513,9 +522,11 @@ const exportTable = async () => {
   content.push([
     "UNIDAD NEGOCIO",
     "UNIDAD SERVICIO",
+    "CONTRATO",
     "ID",
     "ESTADO",
     "TIPO SOLICITUD",
+    "MOTIVO SOLICITUD",
     "SISTEMA / COMPONENTE",
     "NUMERO CO",
     "NUMERO OC",
@@ -523,6 +534,7 @@ const exportTable = async () => {
     "HORA SOLICITUD",
     "SOLICITANTE",
     "FECHA ENTREGA SOLICITADA",
+    "HORA ENTREGA SOLICITADA",
     "TALLER / PLANTA",
     "DOMINIO",
     "TIPO REPUESTO",
@@ -531,8 +543,12 @@ const exportTable = async () => {
     "DESCRIPCIÓN REPUESTO",
     "MEDIDA REPUESTO",
     "CANTIDAD REPUESTO",
+    "PLACA PATENTE",
+    "NUMERO INTERNO",
+    "NUMERO VIN",
     "TIPO BUS",
     "FECHA ENTREGA CONCRETADA",
+    "HORA ENTREGA CONCRETADA",
     "RESOLUTOR",
     "CAUSA ELIMINACION",
   ]);
@@ -551,6 +567,7 @@ const exportTable = async () => {
     content.push([
       solicitud_repuesto.unidad_negocio,
       solicitud_repuesto.unidad_servicio,
+      contratos.get(solicitud_repuesto.tipo_bus) || "",
       solicitud_repuesto.uuid,
       solicitud_repuesto.estado === 0
         ? "En Proceso"
@@ -560,6 +577,7 @@ const exportTable = async () => {
         ? "Eliminada"
         : "",
       solicitud_repuesto.tipo_solicitud,
+      motivo_map.get(solicitud_repuesto.motivo_solicitud) || "",
       solicitud_repuesto.sistema_componente,
       solicitud_repuesto.co_numero,
       solicitud_repuesto.oc_numero,
@@ -567,20 +585,21 @@ const exportTable = async () => {
       solicitud_repuesto.oc_solicitud_hora,
       solicitud_repuesto.oc_solicitud_name,
       solicitud_repuesto.oc_entrega_solicitada_fecha,
+      solicitud_repuesto.oc_entrega_solicitada_hora,
       solicitud_repuesto.oc_taller_planta,
-      solicitud_repuesto.dominio === "0"
-        ? "CARROCERIA"
-        : solicitud_repuesto.dominio === "1"
-        ? "CHASIS"
-        : "CHASIS",
+      solicitud_repuesto.dominio === "0" ? "CARROCERIA" : solicitud_repuesto.dominio === "1" ? "CHASIS" : "CHASIS",
       solicitud_repuesto.repuesto_tipo,
       solicitud_repuesto.repuesto_marca,
       solicitud_repuesto.repuesto_codigo,
       solicitud_repuesto.repuesto_descripcion,
       solicitud_repuesto.repuesto_medida,
       solicitud_repuesto.repuesto_cantidad,
+      solicitud_repuesto.placa_patente,
+      buses?.[solicitud_repuesto.placa_patente]?.[0],
+      buses?.[solicitud_repuesto.placa_patente]?.[2],
       solicitud_repuesto.tipo_bus,
       solicitud_repuesto.oc_entrega_concretada_fecha,
+      solicitud_repuesto.oc_entrega_concretada_hora,
       solicitud_repuesto.oc_entrega_name,
       delete_map.get(solicitud_repuesto.causa),
     ]);

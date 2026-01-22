@@ -19,7 +19,7 @@ export const useMcorrStore = defineStore("mcorrStore", () => {
   const m_mant_corr_change = ref(0);
   let unsubscribe = () => {};
   const date = new Date();
-  date.setMonth(date.getMonth() - 3);
+  date.setMonth(date.getMonth() - 1);
   date.setDate(1); //Primer dia del mes
   const timestamp = useStorage("mant_corr_timestamp", date);
   const bset = async (payload) => {

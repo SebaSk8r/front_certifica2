@@ -47,18 +47,11 @@ export const useInspecStore = defineStore("inspecStore", () => {
   //Map por placa patente (finalizadas)
   const getlastf = async () => {
     const last = new Map();
-    const q = query(
-      collection(db, "inspeccion_tecnica"),
-      where("estado", "==", 1)
-    );
+    const q = query(collection(db, "inspeccion_tecnica"), where("estado", "==", 1));
     const docsRef = await getDocsFromCache(q);
     for (const doc of docsRef.docs) {
       const data = doc.data();
-      if (
-        !last.has(data.placa_patente) ||
-        last.get(data.placa_patente).fecha_inicio_timestamp <
-          data.fecha_inicio_timestamp
-      )
+      if (!last.has(data.placa_patente) || last.get(data.placa_patente).fecha_termino_timestamp < data.fecha_termino_timestamp)
         last.set(data.placa_patente, data);
     }
     return last;
@@ -108,10 +101,8 @@ export const useInspecStore = defineStore("inspecStore", () => {
         let curr_timestamp = timestamp.value;
         snapshot.docChanges().forEach((change) => {
           const data = change.doc.data();
-          if (data.timestamp && data.timestamp.toDate() > curr_timestamp)
-            curr_timestamp = data.timestamp.toDate();
-          if (route.params.uuid === data.uuid)
-            m_inspeccion_tecnicad_change.value++;
+          if (data.timestamp && data.timestamp.toDate() > curr_timestamp) curr_timestamp = data.timestamp.toDate();
+          if (route.params.uuid === data.uuid) m_inspeccion_tecnicad_change.value++;
         });
         timestamp.value = curr_timestamp;
         m_inspeccion_tecnica_change.value++;

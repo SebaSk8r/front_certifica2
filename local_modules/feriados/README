@@ -1,0 +1,8 @@
+Dependencias DEV
+npm install jsesc --save-dev
+
+--
+Index.js se crea mediante npm run build
+
+--
+Para actualizar poner .json en data y correr npm run build

@@ -177,7 +177,7 @@ const onSubmit = () => {
     fecha_reins_timestamp: null,
     unidad_servicio: buses[placa_patente.value.toUpperCase()][17],
     unidad_negocio: buses[placa_patente.value.toUpperCase()][18],
-    version: "2",
+    version: "3",
     no_atributos: buses[placa_patente.value.toUpperCase()][50],
   };
   add(payload);

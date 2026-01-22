@@ -1,7 +1,7 @@
 <template>
   <q-table
     title="Registros"
-    :rows="inspeccion_tecnica_arr"
+    :rows="inspeccion_tecnica_sort"
     :columns="columns"
     :filter="filter"
     row-key="uuid"
@@ -15,30 +15,10 @@
     loading-label="Cargando.."
   >
     <template v-slot:top>
-      <q-btn
-        v-if="!only_view"
-        color="primary"
-        to="/inspec/add"
-        label="Agregar"
-        class="q-mr-sm"
-      />
-      <q-btn
-        color="dark"
-        label="Histórico"
-        class="q-mr-sm"
-        @click="exportTable"
-        :loading="loading_his"
-      />
+      <q-btn v-if="!only_view" color="primary" to="/inspec/add" label="Agregar" class="q-mr-sm" />
+      <q-btn color="dark" label="Histórico" class="q-mr-sm" @click="exportTable" :loading="loading_his" />
       <q-space />
-      <q-input
-        debounce="500"
-        dense
-        v-model="filter"
-        label="Filtrar"
-        type="search"
-        style="max-width: 50%"
-        input-class="text-uppercase"
-      >
+      <q-input debounce="500" dense v-model="filter" label="Filtrar" type="search" style="max-width: 50%" input-class="text-uppercase">
         <template v-slot:append>
           <q-icon name="search" />
         </template>
@@ -52,37 +32,10 @@
     </template>
     <template v-slot:body-cell-actions="props">
       <q-td :props="props">
-        <q-btn
-          v-if="!only_view"
-          color="primary"
-          icon="edit"
-          flat
-          dense
-          @click="onEdit(props.row)"
-        />
-        <q-btn
-          color="green"
-          icon="search"
-          flat
-          dense
-          @click="onSearch(props.row)"
-        />
-        <q-btn
-          v-if="!only_view"
-          color="negative"
-          icon="delete"
-          flat
-          dense
-          @click="onDelete(props.row)"
-        />
-        <q-btn
-          v-if="admin"
-          color="accent"
-          icon="change_circle"
-          flat
-          dense
-          @click="onChange(props.row)"
-        />
+        <q-btn v-if="!only_view" color="primary" icon="edit" flat dense @click="onEdit(props.row)" />
+        <q-btn color="green" icon="search" flat dense @click="onSearch(props.row)" />
+        <q-btn v-if="!only_view" color="negative" icon="delete" flat dense @click="onDelete(props.row)" />
+        <q-btn v-if="admin" color="accent" icon="change_circle" flat dense @click="onChange(props.row)" />
       </q-td>
     </template>
   </q-table>
@@ -148,15 +101,7 @@ const columns = [
     name: "estado",
     label: "Estado",
     field: (row) =>
-      row.estado === 0
-        ? "En Proceso"
-        : row.estado === 1
-        ? "Finalizada"
-        : row.estado === 2
-        ? "Reinspección"
-        : row.estado === 3
-        ? "Eliminada"
-        : "",
+      row.estado === 0 ? "En Proceso" : row.estado === 1 ? "Finalizada" : row.estado === 2 ? "Reinspección" : row.estado === 3 ? "Eliminada" : "",
     align: "center",
     sortable: true,
   },
@@ -205,10 +150,7 @@ const columns = [
   {
     name: "sistema_componente",
     label: "Sistema/Componente",
-    field: (row) =>
-      inspeccion_tecnica.sistema_componente[
-        parseInt(row.sistema_componente) - 1
-      ].label,
+    field: (row) => inspeccion_tecnica.sistema_componente[parseInt(row.sistema_componente) - 1].label,
     align: "center",
     sortable: true,
   },
@@ -236,30 +178,21 @@ const columns = [
   {
     name: "dbaja",
     label: "Defectos Bajos",
-    field: (row) =>
-      isNaN(row?.total_lows - row?.curr_lows)
-        ? ""
-        : row.total_lows - row.curr_lows,
+    field: (row) => (isNaN(row?.total_lows - row?.curr_lows) ? "" : row.total_lows - row.curr_lows),
     align: "center",
     sortable: true,
   },
   {
     name: "dmedia",
     label: "Defectos Medios",
-    field: (row) =>
-      isNaN(row?.total_mediums - row?.curr_mediums)
-        ? ""
-        : row.total_mediums - row.curr_mediums,
+    field: (row) => (isNaN(row?.total_mediums - row?.curr_mediums) ? "" : row.total_mediums - row.curr_mediums),
     align: "center",
     sortable: true,
   },
   {
     name: "dalta",
     label: "Defectos Altos",
-    field: (row) =>
-      isNaN(row?.total_highs - row?.curr_highs)
-        ? ""
-        : row.total_highs - row.curr_highs,
+    field: (row) => (isNaN(row?.total_highs - row?.curr_highs) ? "" : row.total_highs - row.curr_highs),
     align: "center",
     sortable: true,
   },
@@ -290,11 +223,7 @@ const columns = [
     name: "fecha2",
     label: "Periodo Cura",
     field: (row) =>
-      row.resultado.length === 2
-        ? row.resultado[1].fecha
-        : row.resultado.length > 0 && row.resultado[0].certifica === null
-        ? row.fecha_reins
-        : "",
+      row.resultado.length === 2 ? row.resultado[1].fecha : row.resultado.length > 0 && row.resultado[0].certifica === null ? row.fecha_reins : "",
     align: "center",
     sortable: true,
     sort: (a, b) => {
@@ -358,16 +287,27 @@ const columns = [
     field: "fecha_inicio_timestamp",
   },
 ];
+
+//Función de ordenamiento descendente que utiliza fecha_termino_timestamp si existe, de lo contrario fecha_inicio_timestamp
+const customSort = (rows) => {
+  const getTimestamp = (row) => (row.fecha_termino_timestamp ? parseFloat(row.fecha_termino_timestamp) : parseFloat(row.fecha_inicio_timestamp));
+  const data = [...rows];
+  data.sort((a, b) => {
+    return getTimestamp(b) - getTimestamp(a);
+  });
+  return data;
+};
+
 const pagination = ref({
-  sortBy: "fecha_inicio_timestamp",
-  descending: true,
+  //sortBy: "fecha_inicio_timestamp",
+  //descending: true,
   page: 1,
   rowsPerPage: 7,
 });
 
 const { m_inspeccion_tecnica_change } = storeToRefs(useInspecStore());
 const { update, getall, gethistoric } = useInspecStore();
-const inspeccion_tecnica_arr = shallowRef([]);
+const inspeccion_tecnica_sort = shallowRef([]);
 const { notify } = useQuasar();
 const { uid, only_view, admin } = useUserStore();
 const filter = ref("");
@@ -485,21 +425,13 @@ const exportTable = async () => {
       estado.placa_patente,
       estado.kilometraje,
       estado.ot_numero,
-      inspeccion_tecnica.sistema_componente[
-        parseInt(estado.sistema_componente) - 1
-      ].label,
+      inspeccion_tecnica.sistema_componente[parseInt(estado.sistema_componente) - 1].label,
       estado.frecuencia,
       estado.pauta_ejecutada,
       estado.user_name,
-      isNaN(estado?.total_lows - estado?.curr_lows)
-        ? ""
-        : estado.total_lows - estado.curr_lows,
-      isNaN(estado?.total_mediums - estado?.curr_mediums)
-        ? ""
-        : estado.total_mediums - estado.curr_mediums,
-      isNaN(estado?.total_highs - estado?.curr_highs)
-        ? ""
-        : estado.total_highs - estado.curr_highs,
+      isNaN(estado?.total_lows - estado?.curr_lows) ? "" : estado.total_lows - estado.curr_lows,
+      isNaN(estado?.total_mediums - estado?.curr_mediums) ? "" : estado.total_mediums - estado.curr_mediums,
+      isNaN(estado?.total_highs - estado?.curr_highs) ? "" : estado.total_highs - estado.curr_highs,
       estado?.defectos?.join(","),
       estado.resultado.length > 0 && estado.resultado[0]?.causa === 0
         ? "No Aprobado/No Presentado"
@@ -534,7 +466,8 @@ const exportTable = async () => {
 watch(
   () => m_inspeccion_tecnica_change.value,
   async () => {
-    inspeccion_tecnica_arr.value = await getall();
+    const inspeccion_tecnica_arr = await getall();
+    inspeccion_tecnica_sort.value = customSort(inspeccion_tecnica_arr);
     if (m_inspeccion_tecnica_change.value > 0) loading.value = false;
   },
   { immediate: true }

@@ -16,16 +16,7 @@ const terminales_map = new Map([
   ["SANTA MARGARITA", ["8", -70.705557, -33.541406]],
   ["SANTA MARTA", ["8", -70.677237, -33.35482]],
 ]);
-const terminales = [
-  "COCA COLA",
-  "CONDELL",
-  "EL RETIRO",
-  "JOSE AGUIRRE",
-  "JUANITA",
-  "PIE ANDINO",
-  "SANTA MARGARITA",
-  "SANTA MARTA",
-];
+const terminales = ["COCA COLA", "CONDELL", "EL RETIRO", "JOSE AGUIRRE", "JUANITA", "PIE ANDINO", "SANTA MARGARITA", "SANTA MARTA"];
 const inspeccion_pautas = [
   "MP_A_8BRL_A",
   "MP_A_8BRL_B",
@@ -66,6 +57,13 @@ const revdoc_map = new Map([
   [true, "CUMPLE"],
   [false, "NO CUMPLE"],
 ]);
+const traspaso_version = "0";
+const traspaso_xtipo = false;
+const contratos = new Map([
+  ["A2", "L024-U55-O01"],
+  ["B2", "L024-U55-O02"],
+  ["C2", "L024-U55-O03"],
+]);
 export {
   client,
   unidad_servicio,
@@ -79,4 +77,7 @@ export {
   unidad_map,
   terminales_map,
   revdoc_map,
+  traspaso_version,
+  traspaso_xtipo,
+  contratos,
 };

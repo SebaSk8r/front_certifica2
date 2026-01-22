@@ -11,9 +11,7 @@
             label="TIPO CARGA"
             :options="['PROGRAMA', 'CUMPLIMIENTO']"
             dense
-            :rules="[
-              (val) => (val && val.length > 0) || 'Este campo es obligatorio.',
-            ]"
+            :rules="[(val) => (val && val.length > 0) || 'Este campo es obligatorio.']"
             :readonly="submited"
           >
             <template v-slot:before>
@@ -21,25 +19,14 @@
             </template>
           </q-select>
 
-          <q-file
-            v-model="file"
-            label="Archivo"
-            accept=".csv"
-            @rejected="onRejected"
-            :rules="[(val) => val || 'Este campo es obligatorio.']"
-          >
+          <q-file v-model="file" label="Archivo" accept=".csv" @rejected="onRejected" :rules="[(val) => val || 'Este campo es obligatorio.']">
             <template v-slot:before>
               <q-icon name="attach_file" />
             </template>
           </q-file>
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn
-            label="Cargar"
-            type="submit"
-            color="primary"
-            :loading="submited"
-          />
+          <q-btn label="Cargar" type="submit" color="primary" :loading="submited" />
         </q-card-actions>
       </q-form>
     </q-card>
@@ -84,9 +71,7 @@ const onSubmit = () => {
           "TOLERANCIA",
           "FECHA_PROYECTADA",
         ];
-        const result = fields.every((field) =>
-          results.meta["fields"].includes(field)
-        );
+        const result = fields.every((field) => results.meta["fields"].includes(field));
         if (!result) {
           notify({
             color: "red-6",
@@ -112,15 +97,13 @@ const onSubmit = () => {
               placa_patente: result.PATENTE.trim().toUpperCase(),
               tipo_servicio: result.TIPO_SERVICIO.trim().toUpperCase(),
               pauta_proyectada: result.PAUTA_PROYECTADA.trim().toUpperCase(),
-              sistema_componente:
-                result.SISTEMA_COMPONENTE.trim().toUpperCase(),
+              sistema_componente: result.SISTEMA_COMPONENTE.trim().toUpperCase(),
               causa_origen: result.CAUSA_ORIGEN.trim().toUpperCase(),
               km_proyectado: parseInt(result.KM_PROYECTADO.replace(".", "")),
               frecuencia: parseInt(result.FRECUENCIA.replace(".", "")),
               tolerancia: parseInt(result.TOLERANCIA.replace(".", "")),
               fecha_proyectada: fecha_proyectada,
-              fecha_proyectada_timestamp:
-                fecha_proyectada_date.getTime() / 1000,
+              fecha_proyectada_timestamp: fecha_proyectada_date.getTime() / 1000,
               user_uid: uid,
               user_name: name,
               unidad_negocio: unidad_negocio,
@@ -130,6 +113,7 @@ const onSubmit = () => {
                 day: "2-digit",
                 year: "numeric",
               }),
+              estado: 0,
             }
           );
         }
@@ -178,9 +162,7 @@ const onSubmit = () => {
           "INSUMO_CANTIDAD",
           "OBSERVACION",
         ];
-        const result = fields.every((field) =>
-          results.meta["fields"].includes(field)
-        );
+        const result = fields.every((field) => results.meta["fields"].includes(field));
         if (!result) {
           notify({
             color: "red-6",
@@ -200,43 +182,32 @@ const onSubmit = () => {
           const [day_c, month_c, year_c] = ot_cierre_fecha.split("/");
           if (isNaN(day_a) || isNaN(month_a) || isNaN(year_a)) continue;
           if (isNaN(day_c) || isNaN(month_c) || isNaN(year_c)) continue;
-          const ot_apertura_date = new Date(
-            `${year_a}-${month_a}-${day_a} ${result.OT_APERTURA_HORA}`
-          );
-          const ot_cierre_date = new Date(
-            `${year_c}-${month_c}-${day_c} ${result.OT_CIERRE_HORA}`
-          );
+          const ot_apertura_date = new Date(`${year_a}-${month_a}-${day_a} ${result.OT_APERTURA_HORA}`);
+          const ot_cierre_date = new Date(`${year_c}-${month_c}-${day_c} ${result.OT_CIERRE_HORA}`);
           //Ingreso de repuestos
           let curr_repuestos = [];
-          if (documentos.has(result.ID))
-            curr_repuestos = documentos.get(result.ID).repuestos;
+          if (documentos.has(result.ID)) curr_repuestos = documentos.get(result.ID).repuestos;
           if (result.REPUESTO_CODIGO !== "")
             curr_repuestos.push({
               repuesto_codigo: result.REPUESTO_CODIGO.trim().toUpperCase(),
               repuesto_tipo: result.REPUESTO_TIPO.trim().toUpperCase(),
               repuesto_marca: result.REPUESTO_MARCA.trim().toUpperCase(),
-              repuesto_descripcion:
-                result.REPUESTO_DESCRIPCION.trim().toUpperCase(),
-              repuesto_cantidad:
-                parseInt(result.REPUESTO_CANTIDAD.replace(".", "")) || 0,
+              repuesto_descripcion: result.REPUESTO_DESCRIPCION.trim().toUpperCase(),
+              repuesto_cantidad: parseInt(result.REPUESTO_CANTIDAD.replace(".", "")) || 0,
             });
           //Ingreso de insumos
           let curr_insumos = [];
-          if (documentos.has(result.ID))
-            curr_insumos = documentos.get(result.ID).insumos;
+          if (documentos.has(result.ID)) curr_insumos = documentos.get(result.ID).insumos;
           if (result.INSUMO_CODIGO !== "")
             curr_insumos.push({
               insumo_codigo: result.INSUMO_CODIGO.trim().toUpperCase(),
-              insumo_descripcion:
-                result.INSUMO_DESCRIPCION.trim().toUpperCase(),
-              insumo_cantidad:
-                parseInt(result.INSUMO_CANTIDAD.replace(".", "")) || "",
+              insumo_descripcion: result.INSUMO_DESCRIPCION.trim().toUpperCase(),
+              insumo_cantidad: parseInt(result.INSUMO_CANTIDAD.replace(".", "")) || "",
             });
           documentos.set(result.ID, {
             uuid: result.ID,
             ot_numero: parseInt(result.OT_NUMERO.replace(".", "")),
-            ot_apertura_fecha: useDateFormat(ot_apertura_date, "DD/MM/YYYY")
-              .value,
+            ot_apertura_fecha: useDateFormat(ot_apertura_date, "DD/MM/YYYY").value,
             ot_apertura_hora: useDateFormat(ot_apertura_date, "HH:mm:ss").value,
             ot_apertura_timestamp: ot_apertura_date.getTime() / 1000,
             ot_cierre_fecha: useDateFormat(ot_cierre_date, "DD/MM/YYYY").value,
@@ -253,6 +224,7 @@ const onSubmit = () => {
             hora_actualizacion: useDateFormat(new Date(), "HH:mm:ss").value,
             repuestos: curr_repuestos,
             insumos: curr_insumos,
+            estado: 1,
           });
         }
         bupdate(documentos);
