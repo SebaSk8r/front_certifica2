@@ -38,6 +38,7 @@ export const useEstadogpStore = defineStore("estadogpStore", () => {
       const registros = await historic({
         client: client,
         collection: "estado_general_prog",
+        orderBy: "fecha_programa_timestamp",
       });
       return registros.data;
     } catch (error) {

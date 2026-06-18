@@ -5,13 +5,7 @@
         <div class="text-h6">Criterios</div>
       </q-card-section>
       <q-card-section>
-        <q-option-group
-          :options="options_list"
-          type="checkbox"
-          v-model="group"
-          @update:model-value="onUpdate()"
-          :disable="view"
-        />
+        <q-option-group :options="options_list" type="checkbox" v-model="group" @update:model-value="onUpdate()" :disable="view" />
         <q-separator color="transparent" />
       </q-card-section>
       <q-separator color="transparent" />
@@ -37,56 +31,27 @@
               <q-icon name="photo_camera" />
             </template>
             <template v-slot:after v-if="canUpload">
-              <q-btn
-                color="primary"
-                dense
-                icon="cloud_upload"
-                round
-                @click="onUpload"
-                :disable="!canUpload"
-                :loading="isUploading"
-              />
+              <q-btn color="primary" dense icon="cloud_upload" round @click="onUpload" :disable="!canUpload" :loading="isUploading" />
             </template>
           </q-file>
         </div>
       </q-card-section>
       <q-card-section>
-        <q-scroll-area
-          v-if="filenames.length > 0"
-          style="height: 135px"
-          visible
-        >
+        <q-scroll-area v-if="filenames.length > 0" style="height: 135px" visible>
           <div class="row justify-center q-gutter-sm">
             <q-img
               v-for="(filename, index) in filenames"
               :key="filename"
-              :src="
-                filenames_new
-                  ? preurl + 'thumb_' + remExt(filename.name) + '.webp'
-                  : preurl + 'thumb_' + filename
-              "
+              :src="filenames_new ? preurl + 'thumb_' + remExt(filename.name) + '.webp' : preurl + 'thumb_' + filename"
               basic
               spinner-color="primary"
               style="max-height: 200px; max-width: 200px"
               class="rounded-borders shadow-5"
             >
               <div class="absolute-bottom row">
-                <q-btn
-                  v-if="!view"
-                  color="white"
-                  icon="delete"
-                  flat
-                  dense
-                  @click="deleteImage(index)"
-                />
+                <q-btn v-if="!view" color="white" icon="delete" flat dense @click="deleteImage(index)" />
                 <q-space />
-                <q-btn
-                  color="white"
-                  icon="fullscreen"
-                  flat
-                  dense
-                  @click="largeImage(filename)"
-                />
+                <q-btn color="white" icon="fullscreen" flat dense @click="largeImage(filename)" />
               </div>
             </q-img>
           </div>
@@ -154,46 +119,20 @@
         </q-markup-table>
       </q-card-section>
       <q-card-actions align="right">
-        <q-btn
-          label="Guardar"
-          @click="onGuardar()"
-          color="secondary"
-          :disable="view"
-        />
-        <q-btn
-          label="Finalizar"
-          type="submit"
-          @click="reprog = false"
-          color="primary"
-          :loading="submited"
-          :disable="view"
-        />
-        <q-btn
-          v-if="!dtpm"
-          label="Reprog"
-          type="submit"
-          @click="reprog = true"
-          color="dark"
-          :loading="submited"
-          :disable="view"
-        />
+        <q-btn label="Guardar" @click="onGuardar()" color="secondary" :disable="view" />
+        <q-btn label="Finalizar" type="submit" @click="reprog = false" color="primary" :loading="submited" :disable="view" />
+        <q-btn v-if="!dtpm" label="Reprog" type="submit" @click="reprog = true" color="dark" :loading="submited" :disable="view" />
       </q-card-actions>
     </q-card>
   </q-form>
-  <q-dialog
-    v-model="dialog"
-    transition-show="scale"
-    transition-hide="scale"
-    persistent
-  >
+  <q-dialog v-model="dialog" transition-show="scale" transition-hide="scale" persistent>
     <q-card bordered class="q-ma-md">
       <q-card-section>
         <div class="text-h6">Confirmación</div>
       </q-card-section>
 
       <q-card-section class="q-pt-none">
-        La inspección sera finalizada con estado "{{ estado_desc }}". <br />Por
-        favor confirmar estado.
+        La inspección sera finalizada con estado "{{ estado_desc }}". <br />Por favor confirmar estado.
       </q-card-section>
       <q-card-actions align="right">
         <q-btn label="Cancelar" color="secondary" v-close-popup />
@@ -242,8 +181,7 @@ let filenames_new = false;
 let placa_patente = null;
 let fecha_caduca_timestamp = (Date.now() + 3600 * 1000 * 24 * 7) / 1000; //No restringe por defecto.
 
-const preurl =
-  "https://storage.googleapis.com/slared.appspot.com/estado_general/";
+const preurl = "https://storage.googleapis.com/slared.appspot.com/estado_general/";
 const curr_lows = ref(0);
 const curr_mediums = ref(0);
 const curr_highs = ref(0);
@@ -263,30 +201,15 @@ const options_list = shallowRef([]);
 const no_atributos = ref([]);
 const options_low = computed(() => {
   if (!version.value) return new Set([]);
-  else
-    return new Set(
-      estado_general[version.value].options_low.filter(
-        (i) => !no_atributos.value.includes(i)
-      )
-    );
+  else return new Set(estado_general[version.value].options_low.filter((i) => !no_atributos.value.includes(i)));
 });
 const options_medium = computed(() => {
   if (!version.value) return new Set([]);
-  else
-    return new Set(
-      estado_general[version.value].options_medium.filter(
-        (i) => !no_atributos.value.includes(i)
-      )
-    );
+  else return new Set(estado_general[version.value].options_medium.filter((i) => !no_atributos.value.includes(i)));
 });
 const options_high = computed(() => {
   if (!version.value) return new Set([]);
-  else
-    return new Set(
-      estado_general[version.value].options_high.filter(
-        (i) => !no_atributos.value.includes(i)
-      )
-    );
+  else return new Set(estado_general[version.value].options_high.filter((i) => !no_atributos.value.includes(i)));
 });
 //let charged = false;
 //let file_charged = 0;
@@ -311,11 +234,7 @@ const onUpdate = () => {
   curr_lows.value = lows;
   curr_mediums.value = mediums;
   curr_highs.value = highs;
-  const options_all = [
-    ...Array.from(options_low.value),
-    ...Array.from(options_medium.value),
-    ...Array.from(options_high.value),
-  ];
+  const options_all = [...Array.from(options_low.value), ...Array.from(options_medium.value), ...Array.from(options_high.value)];
   const defectos = options_all.filter((value) => !group.value.includes(value));
   const payload = {
     uuid: route.params.uuid,
@@ -343,10 +262,7 @@ const onSubmit = () => {
     return;
   }
   //No se puede reprogramar si quedan menos de 4 dias para caducar
-  if (
-    reprog.value &&
-    fecha_caduca_timestamp <= (Date.now() + 3600 * 1000 * 24 * 4) / 1000
-  ) {
+  if (reprog.value && fecha_caduca_timestamp <= (Date.now() + 3600 * 1000 * 24 * 4) / 1000) {
     notify({
       color: "red-6",
       textColor: "white",
@@ -385,44 +301,35 @@ const onSubmit = () => {
   curr_highs.value = highs;
 
   //Resultado: Alta>0 =>No certifica. Otros => Pendiente
+  const defectos_highs = options_high.value.size - curr_highs.value;
+  const defectos_mediums = options_medium.value.size - curr_mediums.value;
+  const defectos_lows = options_low.value.size - curr_lows.value;
+  const defectos_total = defectos_highs + defectos_mediums + defectos_lows;
   if (
-    options_high.value.size - curr_highs.value > 0 ||
-    (curr_estado.value === 2 &&
-      (options_medium.value.size - curr_mediums.value > 0 ||
-        options_low.value.size - curr_lows.value > 0))
+    defectos_highs > 0 || // Al menos 1 defecto ALTA
+    (curr_estado.value === 2 && (defectos_mediums > 0 || defectos_lows > 0)) || // Reinspección con cualquier defecto medio o bajo
+    defectos_mediums >= 3 || // 3 o más defectos MEDIA
+    defectos_lows >= 5 || // 5 o más defectos BAJA
+    defectos_total > 5 // Más de 5 defectos en total
   ) {
     certifica.value = false;
-  } else if (
-    options_medium.value.size - curr_mediums.value > 0 &&
-    curr_estado.value === 0
-  ) {
+  } else if (defectos_mediums > 0 && curr_estado.value === 0) {
     estado.value = 2;
-    fecha_reins.value = new Date(
-      Date.now() + 3600 * 1000 * 24 * 3
-    ).toLocaleDateString("en-GB", {
+    fecha_reins.value = new Date(Date.now() + 3600 * 1000 * 24 * 3).toLocaleDateString("en-GB", {
       month: "2-digit",
       day: "2-digit",
       year: "numeric",
     });
-    hora_reins.value = new Date(
-      Date.now() + 3600 * 1000 * 24 * 3
-    ).toLocaleTimeString("en-GB", { hour12: false });
+    hora_reins.value = new Date(Date.now() + 3600 * 1000 * 24 * 3).toLocaleTimeString("en-GB", { hour12: false });
     fecha_reins_timestamp.value = (Date.now() + 3600 * 1000 * 24 * 3) / 1000;
-  } else if (
-    options_low.value.size - curr_lows.value > 0 &&
-    curr_estado.value === 0
-  ) {
+  } else if (defectos_lows > 0 && curr_estado.value === 0) {
     estado.value = 2;
-    fecha_reins.value = new Date(
-      Date.now() + 3600 * 1000 * 24 * 5
-    ).toLocaleDateString("en-GB", {
+    fecha_reins.value = new Date(Date.now() + 3600 * 1000 * 24 * 5).toLocaleDateString("en-GB", {
       month: "2-digit",
       day: "2-digit",
       year: "numeric",
     });
-    hora_reins.value = new Date(
-      Date.now() + 3600 * 1000 * 24 * 5
-    ).toLocaleTimeString("en-GB", { hour12: false });
+    hora_reins.value = new Date(Date.now() + 3600 * 1000 * 24 * 5).toLocaleTimeString("en-GB", { hour12: false });
     fecha_reins_timestamp.value = (Date.now() + 3600 * 1000 * 24 * 5) / 1000;
   } else certifica.value = true;
 
@@ -435,21 +342,17 @@ const onSubmit = () => {
     estado.value === 4
       ? "Reprogramar"
       : estado.value === 1 && certifica.value === true
-      ? "Aprobado"
-      : estado.value === 1 && certifica.value === false
-      ? "No Aprobado"
-      : "Reinspección";
+        ? "Aprobado"
+        : estado.value === 1 && certifica.value === false
+          ? "No Aprobado"
+          : "Reinspección";
 
   //Mostramos dialog
   dialog.value = true;
 };
 const onConfirm = () => {
   //Identificamos incumplimientos.
-  const options_all = [
-    ...Array.from(options_low.value),
-    ...Array.from(options_medium.value),
-    ...Array.from(options_high.value),
-  ];
+  const options_all = [...Array.from(options_low.value), ...Array.from(options_medium.value), ...Array.from(options_high.value)];
   const defectos = options_all.filter((value) => !group.value.includes(value));
   const resultado = curr_resultado.value;
   resultado.push({
@@ -487,10 +390,7 @@ const onConfirm = () => {
             year: "numeric",
           })
         : "",
-    hora_termino:
-      estado.value === 1
-        ? new Date().toLocaleTimeString([], { hour12: false })
-        : "",
+    hora_termino: estado.value === 1 ? new Date().toLocaleTimeString([], { hour12: false }) : "",
     fecha_termino_timestamp: estado.value === 1 ? Date.now() / 1000 : "",
   };
   update(payload);
@@ -513,7 +413,7 @@ const onConfirm = () => {
       router.push({
         name: "estadog_list",
       }),
-    2500
+    2500,
   );
 };
 const largeImage = (filename) => {
@@ -584,7 +484,7 @@ const onGuardar = () => {
       router.push({
         name: "estadog_list",
       }),
-    2500
+    2500,
   );
 };
 //Llamada que se gatilla al ingresar o refrescar pagina, una vez se hayan cargado los datos.
@@ -595,9 +495,7 @@ invoke(async () => {
     version.value = estadog["version"] || "0";
     const no_atributosg = estadog["no_atributos"] || [];
     no_atributos.value = no_atributosg.concat([no_wifi]);
-    options_list.value = estado_general[version.value].options_list.filter(
-      (i) => !no_atributos.value.includes(i.value)
-    );
+    options_list.value = estado_general[version.value].options_list.filter((i) => !no_atributos.value.includes(i.value));
     group.value = estadog["group"];
     obs_inspeccion.value = estadog["obs_inspeccion"];
     curr_estado.value = estadog["estado"];
@@ -645,9 +543,8 @@ watch(
   () => m_estado_generald_change.value,
   async () => {
     const estadog = await getbyid(route.params.uuid);
-    if (estadog && estadog["filenames"].length !== filenames.value.length)
-      filenames.value = estadog["filenames"];
-  }
+    if (estadog && estadog["filenames"].length !== filenames.value.length) filenames.value = estadog["filenames"];
+  },
 );
 </script>
 <style scoped>

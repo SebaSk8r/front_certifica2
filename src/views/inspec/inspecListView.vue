@@ -4,6 +4,7 @@
     :rows="inspeccion_tecnica_sort"
     :columns="columns"
     :filter="filter"
+    :filter-method="filterMethod"
     row-key="uuid"
     class="q-ma-md"
     :loading="loading"
@@ -210,12 +211,12 @@ const columns = [
       row.resultado.length > 0 && row.resultado[0]?.causa === 0
         ? "No Aprobado/No Presentado"
         : row.resultado.length > 0 && row.resultado[0].certifica
-        ? "Aprobado"
-        : row.resultado.length > 0 && row.resultado[0].certifica === false
-        ? "No Aprobado"
-        : row.resultado.length > 0
-        ? "Pendiente"
-        : "",
+          ? "Aprobado"
+          : row.resultado.length > 0 && row.resultado[0].certifica === false
+            ? "No Aprobado"
+            : row.resultado.length > 0
+              ? "Pendiente"
+              : "",
     align: "center",
     sortable: true,
   },
@@ -243,8 +244,8 @@ const columns = [
       row.resultado.length > 1 && row.resultado[1].certifica
         ? "Aprobado"
         : row.resultado.length > 1 && row.resultado[1].certifica === false
-        ? "No Aprobado"
-        : "",
+          ? "No Aprobado"
+          : "",
     align: "center",
     sortable: true,
   },
@@ -315,8 +316,41 @@ const router = useRouter();
 const loading = ref(true);
 const loading_his = ref(false);
 
+/**
+ * Método de filtrado personalizado para q-table.
+ *
+ * Permite buscar por múltiples términos simultáneamente separados por coma (",").
+ * Cada término se evalúa como condición "Y" (AND): un registro se incluye solo si
+ * contiene TODOS los términos ingresados en al menos una de sus columnas visibles.
+ *
+ * Ejemplos:
+ *   "SALTO"        → registros que contienen "SALTO" en cualquier columna.
+ *   "SALTO, US1"  → registros que contienen "SALTO" en alguna columna Y "US1" en alguna columna.
+ *
+ * @param {Array} rows - Filas de la tabla.
+ * @param {string} terms - Texto ingresado en el campo de filtro.
+ * @param {Array} cols - Columnas visibles de la tabla.
+ * @param {Function} getCellValue - Función de Quasar para obtener el valor de una celda.
+ * @returns {Array} Filas que cumplen todos los términos de búsqueda.
+ */
+const filterMethod = (rows, terms, cols, getCellValue) => {
+  const parts = terms
+    .split(",")
+    .map((t) => t.trim().toLowerCase())
+    .filter((t) => t.length > 0);
+  if (parts.length === 0) return rows;
+  return rows.filter((row) =>
+    parts.every((term) =>
+      cols.some((col) => {
+        const val = getCellValue(col, row);
+        return val !== null && val !== undefined && String(val).toLowerCase().includes(term);
+      }),
+    ),
+  );
+};
+
 const onEdit = (row) => {
-  if ([1, 3].includes(row.estado) || (row.user_uid !== uid && !admin)) {
+  if ([1, 3].includes(row.estado) || (row.user_uid !== uid && !admin && row.estado !== 2)) {
     notify({
       color: "red-6",
       textColor: "white",
@@ -414,12 +448,12 @@ const exportTable = async () => {
       estado.estado === 0
         ? "En Proceso"
         : estado.estado === 1
-        ? "Finalizada"
-        : estado.estado === 2
-        ? "Reinspección"
-        : estado.estado === 3
-        ? "Eliminada"
-        : "",
+          ? "Finalizada"
+          : estado.estado === 2
+            ? "Reinspección"
+            : estado.estado === 3
+              ? "Eliminada"
+              : "",
       estado.fecha_inicio,
       estado.lugar_inspeccion,
       estado.placa_patente,
@@ -436,20 +470,20 @@ const exportTable = async () => {
       estado.resultado.length > 0 && estado.resultado[0]?.causa === 0
         ? "No Aprobado/No Presentado"
         : estado.resultado.length > 0 && estado.resultado[0].certifica
-        ? "Aprobado"
-        : estado.resultado.length > 0 && estado.resultado[0].certifica === false
-        ? "No Aprobado"
-        : "Pendiente",
+          ? "Aprobado"
+          : estado.resultado.length > 0 && estado.resultado[0].certifica === false
+            ? "No Aprobado"
+            : "Pendiente",
       estado.resultado.length === 2
         ? estado.resultado[1].fecha
         : estado.resultado.length > 0 && estado.resultado[0].certifica === null
-        ? estado.fecha_reins
-        : "",
+          ? estado.fecha_reins
+          : "",
       estado.resultado.length > 1 && estado.resultado[1].certifica
         ? "Aprobado"
         : estado.resultado.length > 1 && estado.resultado[1].certifica === false
-        ? "No Aprobado"
-        : "",
+          ? "No Aprobado"
+          : "",
       estado.estado === 1 ? estado.resultado.at(-1).fecha : "",
       estado.estado === 1 ? estado.resultado.at(-1).hora : "",
       estado.obs_inspeccion?.replaceAll("\n", ". "),
@@ -470,6 +504,6 @@ watch(
     inspeccion_tecnica_sort.value = customSort(inspeccion_tecnica_arr);
     if (m_inspeccion_tecnica_change.value > 0) loading.value = false;
   },
-  { immediate: true }
+  { immediate: true },
 );
 </script>

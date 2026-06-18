@@ -246,6 +246,12 @@ const addWorkDays = (date, days) => {
   const HOURS_PER_DAY = WORK_END - WORK_START; // 9 horas
   let totalHours = days * HOURS_PER_DAY;
 
+  // Normalizar: si la fecha cae en feriado o fin de semana, avanzar al siguiente dia laboral
+  while (feriados.has(date.toISOString().split("T")[0]) || date.getDay() === 6 || date.getDay() === 0) {
+    date.setDate(date.getDate() + 1);
+    date.setHours(WORK_START, 0, 0, 0);
+  }
+
   while (totalHours > 0) {
     const dateStr = date.toISOString().split("T")[0];
 
@@ -299,6 +305,23 @@ const fecha_entrega_solicitada = computed(() => {
   const result = addWorkDays(req_date, 2);
   return result;
 });
+const fecha_solicitud = computed(() => {
+  const req_date = new Date(now.value);
+  //Si la solicitud se hace despues de las 18:00 hrs o el fin de semana, se considera como dia de requerimiento el siguiente dia habil a las 09:00 hrs
+  if (now.value.getHours() >= 18 || now.value.getDay() === 6 || now.value.getDay() === 0) {
+    req_date.setDate(req_date.getDate() + 1);
+    req_date.setHours(9, 0, 0, 0);
+    // Si cae en fin de semana, avanzar al lunes
+    if (req_date.getDay() === 6) req_date.setDate(req_date.getDate() + 2);
+    else if (req_date.getDay() === 0) req_date.setDate(req_date.getDate() + 1);
+  }
+  //Si la solicitud se hace antes de las 09:00 hrs, se considera como dia de requerimiento el mismo dia a las 09:00 hrs
+  else if (now.value.getHours() < 9) {
+    req_date.setHours(9, 0, 0, 0);
+  }
+  const result = addWorkDays(req_date, 0);
+  return result;
+});
 
 const cantidad_posible = computed(() => {
   if (!repuesto_descripcion.value) return null;
@@ -335,9 +358,9 @@ const onSubmit = async () => {
       oc_taller_planta: terminal.value,
       tipo_solicitud: "REPUESTO",
       motivo_solicitud: 1, //0=Stock, 1=Reparación
-      oc_solicitud_fecha: useDateFormat(new Date(), "DD/MM/YYYY").value,
-      oc_solicitud_hora: useDateFormat(new Date(), "HH:mm:ss").value,
-      oc_solicitud_timestamp: Date.now() / 1000,
+      oc_solicitud_fecha: useDateFormat(fecha_solicitud.value, "DD/MM/YYYY").value,
+      oc_solicitud_hora: useDateFormat(fecha_solicitud.value, "HH:mm:ss").value,
+      oc_solicitud_timestamp: fecha_solicitud.value.getTime() / 1000,
       oc_solicitud_name: name,
       oc_entrega_solicitada_fecha: useDateFormat(fecha_entrega_solicitada.value, "DD/MM/YYYY").value,
       oc_entrega_solicitada_hora: useDateFormat(fecha_entrega_solicitada.value, "HH:mm:ss").value,
@@ -369,7 +392,7 @@ const onSubmit = async () => {
       router.push({
         name: "soploc_listru",
       }),
-    2500
+    2500,
   );
 };
 const onSubmit_repuesto = () => {

@@ -53,7 +53,7 @@ const inspeccion_pautas = [
 const meses_estado_general = 3;
 const meses_inspeccion_tecnica = 6;
 const dashboard_link = "https://app.powerbi.com/home";
-const hdasboard_link = "";
+const hdasboard_link = "https://datastudio.google.com/embed/reporting/61efb3b6-6790-4dee-b21f-1c64ad0736f2/page/p_ch5o0f3v1d";
 const revdoc_map = new Map([
   [true, "CUMPLE"],
   [false, "NO CUMPLE"],

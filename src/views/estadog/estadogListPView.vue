@@ -4,6 +4,7 @@
     :rows="registros_arr"
     :columns="columns"
     :filter="filter"
+    :filter-method="filterMethod"
     row-key="uuid"
     class="q-ma-md"
     :loading="loading"
@@ -42,23 +43,21 @@ import { stringify } from "csv-stringify/browser/esm/sync";
 
 const date = new Date();
 const visible_cols = [
-  "uuid",
-  "estado",
-  "fecha_inicio",
-  "hora_inicio",
   "unidad_negocio",
   "unidad_servicio",
-  "lugar_inspeccion",
+  "uuid",
   "placa_patente",
-  "numero_interno",
+  "terminal",
+  "estado",
   "certifica_inicio",
   "fecha_programa",
   "dias_restantes",
-  "fecha_nopresenta1",
-  "fecha_nopresenta2",
-  "fecha_nopresenta3",
-  "fecha_termino",
-  "certifica_termino",
+  "fecha_expira",
+  "hora_expira",
+  "fecha_agenda",
+  "hora_agenda",
+  "lugar_agenda",
+  "ot_agenda",
 ];
 const columns = [
   {
@@ -81,45 +80,6 @@ const columns = [
     sortable: true,
   },
   {
-    name: "estado",
-    label: "Estado",
-    field: (row) =>
-      row.estado === 0 && row.fecha_programa_timestamp >= date.getTime() / 1000
-        ? "En Plazo"
-        : row.estado === 0 && row.fecha_caduca_timestamp >= date.getTime() / 1000
-        ? "Por Vencer"
-        : row.estado === 0 && row.fecha_caduca_timestamp < date.getTime() / 1000
-        ? "Vencida"
-        : row.estado === 1
-        ? "Finalizada"
-        : row.estado === 3
-        ? "Eliminada"
-        : "",
-    align: "center",
-    sortable: true,
-  },
-  {
-    name: "fecha_inicio",
-    label: "Fecha Ultima",
-    field: "fecha_inicio",
-    align: "center",
-    sortable: true,
-    sort: (a, b) => {
-      const datePartsA = a.split("/");
-      const datePartsB = b.split("/");
-      const dateA = new Date(+datePartsA[2], datePartsA[1] - 1, +datePartsA[0]);
-      const dateB = new Date(+datePartsB[2], datePartsB[1] - 1, +datePartsB[0]);
-      return dateA.getTime() - dateB.getTime();
-    },
-  },
-  {
-    name: "lugar_inspeccion",
-    label: "Lugar Inspección",
-    field: "lugar_inspeccion",
-    align: "center",
-    sortable: true,
-  },
-  {
     name: "placa_patente",
     label: "Placa Patente",
     field: "placa_patente",
@@ -127,12 +87,30 @@ const columns = [
     sortable: true,
   },
   {
-    name: "numero_interno",
-    label: "Numero Interno",
-    field: (row) => buses?.[row.placa_patente]?.[0],
+    name: "terminal",
+    label: "Terminal",
+    field: (row) => buses[row.placa_patente]?.[23] ?? "",
+    align: "center",
+  },
+  {
+    name: "estado",
+    label: "Estado",
+    field: (row) =>
+      row.estado === 0 && row.fecha_programa_timestamp >= date.getTime() / 1000
+        ? "En Plazo"
+        : row.estado === 0 && row.fecha_caduca_timestamp >= date.getTime() / 1000
+          ? "Por Vencer"
+          : row.estado === 0 && row.fecha_caduca_timestamp < date.getTime() / 1000
+            ? "Vencida"
+            : row.estado === 1
+              ? "Finalizada"
+              : row.estado === 3
+                ? "Eliminada"
+                : "",
     align: "center",
     sortable: true,
   },
+
   {
     name: "certifica_inicio",
     label: "Resultado Actual",
@@ -140,9 +118,10 @@ const columns = [
     align: "center",
     sortable: true,
   },
+
   {
     name: "fecha_programa",
-    label: "Fecha Programada",
+    label: "Fecha Propuesta",
     field: "fecha_programa",
     align: "center",
     sortable: true,
@@ -155,22 +134,42 @@ const columns = [
     },
   },
   {
+    name: "fecha_expira",
+    label: "Fecha Expiración",
+    field: "fecha_caduca",
+    align: "center",
+    sortable: true,
+    sort: (a, b) => {
+      const datePartsA = a.split("/");
+      const datePartsB = b.split("/");
+      const dateA = new Date(+datePartsA[2], datePartsA[1] - 1, +datePartsA[0]);
+      const dateB = new Date(+datePartsB[2], datePartsB[1] - 1, +datePartsB[0]);
+      return dateA.getTime() - dateB.getTime();
+    },
+  },
+  {
+    name: "hora_expira",
+    label: "Hora Expiración",
+    field: "hora_caduca",
+    align: "center",
+  },
+  {
     name: "dias_restantes",
     label: "Dias Restantes",
     field: (row) =>
       row.estado === 0 && row.fecha_caduca_timestamp > date.getTime() / 1000
         ? Math.trunc((row.fecha_caduca_timestamp - date.getTime() / 1000) / (3600 * 24))
         : row.estado === 0
-        ? 0
-        : "",
+          ? 0
+          : "",
 
     align: "center",
     sortable: true,
   },
   {
-    name: "fecha_nopresenta1",
-    label: "No Presenta 1",
-    field: (row) => row.fecha_nopresenta.at(-3),
+    name: "fecha_agenda",
+    label: "Fecha Programa",
+    field: (row) => (row.agenda?.at(-1)?.values ? row.agenda.at(-1).values[0] : null),
     align: "center",
     sortable: true,
     sort: (a, b) => {
@@ -182,53 +181,22 @@ const columns = [
     },
   },
   {
-    name: "fecha_nopresenta2",
-    label: "No Presenta 2",
-    field: (row) => row.fecha_nopresenta.at(-2),
+    name: "hora_agenda",
+    label: "Hora Programa",
+    field: (row) => (row.agenda?.at(-1)?.values ? row.agenda.at(-1).values[1] : null),
     align: "center",
-    sortable: true,
-    sort: (a, b) => {
-      const datePartsA = a.split("/");
-      const datePartsB = b.split("/");
-      const dateA = new Date(+datePartsA[2], datePartsA[1] - 1, +datePartsA[0]);
-      const dateB = new Date(+datePartsB[2], datePartsB[1] - 1, +datePartsB[0]);
-      return dateA.getTime() - dateB.getTime();
-    },
   },
   {
-    name: "fecha_nopresenta3",
-    label: "No Presenta 3",
-    field: (row) => row.fecha_nopresenta.at(-1),
+    name: "lugar_agenda",
+    label: "Lugar Programa",
+    field: (row) => (row.agenda?.at(-1)?.values ? row.agenda.at(-1).values[3] : null),
     align: "center",
-    sortable: true,
-    sort: (a, b) => {
-      const datePartsA = a.split("/");
-      const datePartsB = b.split("/");
-      const dateA = new Date(+datePartsA[2], datePartsA[1] - 1, +datePartsA[0]);
-      const dateB = new Date(+datePartsB[2], datePartsB[1] - 1, +datePartsB[0]);
-      return dateA.getTime() - dateB.getTime();
-    },
   },
   {
-    name: "fecha_termino",
-    label: "Fecha Termino",
-    field: "fecha_termino",
+    name: "ot_agenda",
+    label: "OT Programa",
+    field: (row) => (row.agenda?.at(-1)?.values ? row.agenda.at(-1).values[4] : null),
     align: "center",
-    sortable: true,
-    sort: (a, b) => {
-      const datePartsA = a.split("/");
-      const datePartsB = b.split("/");
-      const dateA = new Date(+datePartsA[2], datePartsA[1] - 1, +datePartsA[0]);
-      const dateB = new Date(+datePartsB[2], datePartsB[1] - 1, +datePartsB[0]);
-      return dateA.getTime() - dateB.getTime();
-    },
-  },
-  {
-    name: "certifica_termino",
-    label: "Resultado",
-    field: (row) => (row.certifica_termino === true ? "Aprobado" : row.certifica_termino === false ? "No Aprobado" : ""),
-    align: "center",
-    sortable: true,
   },
   {
     name: "fecha_caduca_timestamp",
@@ -251,6 +219,39 @@ const loading = ref(true);
 const loading_his = ref(false);
 const loading_hisp = ref(false);
 
+/**
+ * Método de filtrado personalizado para q-table.
+ *
+ * Permite buscar por múltiples términos simultáneamente separados por coma (",").
+ * Cada término se evalúa como condición "Y" (AND): un registro se incluye solo si
+ * contiene TODOS los términos ingresados en al menos una de sus columnas visibles.
+ *
+ * Ejemplos:
+ *   "SALTO"        → registros que contienen "SALTO" en cualquier columna.
+ *   "SALTO, US1"  → registros que contienen "SALTO" en alguna columna Y "US1" en alguna columna.
+ *
+ * @param {Array} rows - Filas de la tabla.
+ * @param {string} terms - Texto ingresado en el campo de filtro.
+ * @param {Array} cols - Columnas visibles de la tabla.
+ * @param {Function} getCellValue - Función de Quasar para obtener el valor de una celda.
+ * @returns {Array} Filas que cumplen todos los términos de búsqueda.
+ */
+const filterMethod = (rows, terms, cols, getCellValue) => {
+  const parts = terms
+    .split(",")
+    .map((t) => t.trim().toLowerCase())
+    .filter((t) => t.length > 0);
+  if (parts.length === 0) return rows;
+  return rows.filter((row) =>
+    parts.every((term) =>
+      cols.some((col) => {
+        const val = getCellValue(col, row);
+        return val !== null && val !== undefined && String(val).toLowerCase().includes(term);
+      }),
+    ),
+  );
+};
+
 const exportTable = async (historic) => {
   if (historic) loading_his.value = true;
   else loading_hisp.value = true;
@@ -259,19 +260,18 @@ const exportTable = async (historic) => {
     "UNIDAD NEGOCIO",
     "UNIDAD SERVICIO",
     "ID",
-    "ESTADO",
-    "FECHA ULTIMA",
-    "LUGAR INSPECCION",
     "PLACA PATENTE",
-    "NUMERO INTERNO",
+    "TERMINAL",
+    "ESTADO",
     "RESULTADO ACTUAL",
-    "FECHA PROGRAMADA",
+    "FECHA PROPUESTA",
+    "FECHA EXPIRACIÓN",
+    "HORA EXPIRACIÓN",
     "DIAS RESTANTES",
-    "NO PRESENTA 1",
-    "NO PRESENTA 2",
-    "NO PRESENTA 3",
-    "FECHA TERMINO",
-    "RESULTADO",
+    "FECHA PROGRAMA",
+    "HORA PROGRAMA",
+    "LUGAR PROGRAMA",
+    "OT PROGRAMA",
   ]);
   const registros = await gethistoric();
   if (registros.length === 0) {
@@ -287,37 +287,37 @@ const exportTable = async (historic) => {
   for (const registro of registros) {
     //Cuando no es historic filtramos aquellos registros con estado distinto a 0
     if (!historic && registro.estado !== 0) continue;
+    const agenda = registro.agenda?.at(-1)?.values ?? null;
     content.push([
       registro.unidad_negocio,
       registro.unidad_servicio,
       registro.uuid,
+      registro.placa_patente,
+      buses[registro.placa_patente]?.[23] ?? "",
       registro.estado === 0 && registro.fecha_programa_timestamp >= date.getTime() / 1000
         ? "En Plazo"
         : registro.estado === 0 && registro.fecha_caduca_timestamp >= date.getTime() / 1000
-        ? "Por Vencer"
-        : registro.estado === 0 && registro.fecha_caduca_timestamp < date.getTime() / 1000
-        ? "Vencida"
-        : registro.estado === 1
-        ? "Finalizada"
-        : registro.estado === 3
-        ? "Eliminada"
-        : "",
-      registro.fecha_inicio,
-      registro.lugar_inspeccion,
-      registro.placa_patente,
-      buses?.[registro.placa_patente]?.[0],
+          ? "Por Vencer"
+          : registro.estado === 0 && registro.fecha_caduca_timestamp < date.getTime() / 1000
+            ? "Vencida"
+            : registro.estado === 1
+              ? "Finalizada"
+              : registro.estado === 3
+                ? "Eliminada"
+                : "",
       registro.certifica_inicio === true ? "Aprobado" : "No Aprobado",
       registro.fecha_programa,
+      registro.fecha_caduca,
+      registro.hora_caduca,
       registro.estado === 0 && registro.fecha_caduca_timestamp > date.getTime() / 1000
         ? Math.trunc((registro.fecha_caduca_timestamp - date.getTime() / 1000) / (3600 * 24))
         : registro.estado === 0
-        ? 0
-        : "",
-      registro.fecha_nopresenta.at(-3),
-      registro.fecha_nopresenta.at(-2),
-      registro.fecha_nopresenta.at(-1),
-      registro.fecha_termino,
-      registro.certifica_termino === true ? "Aprobado" : registro.certifica_termino === false ? "Aprobado" : "",
+          ? 0
+          : "",
+      agenda ? agenda[0] : null,
+      agenda ? agenda[1] : null,
+      agenda ? agenda[3] : null,
+      agenda ? agenda[4] : null,
     ]);
   }
   const data = stringify(content, {
@@ -335,6 +335,6 @@ watch(
     registros_arr.value = await getall();
     if (m_change.value > 0) loading.value = false;
   },
-  { immediate: true }
+  { immediate: true },
 );
 </script>

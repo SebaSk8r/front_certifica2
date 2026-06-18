@@ -380,7 +380,7 @@ const fh_concretada = computed(() => {
 });
 
 const optionsFn = (date) => {
-  return date >= useDateFormat(new Date(ot_solicitud_timestamp * 1000), "YYYY/MM/DD").value;
+  return date >= useDateFormat(new Date(ot_solicitud_timestamp * 1000), "YYYY/MM/DD").value && date <= useDateFormat(new Date(), "YYYY/MM/DD").value;
 };
 const eventsFn = (date) => {
   return date >= useDateFormat(new Date(ot_solicitud_timestamp * 1000), "YYYY/MM/DD").value;

@@ -47,16 +47,14 @@ const visible_cols = [
   "uuid",
   "estado",
   "placa_patente",
-  "tipo_servicio",
+  "tipo",
   "sistema_componente",
   "inc_apertura_fecha",
   "inc_apertura_hora",
   "inc_cierre_fecha",
   "inc_cierre_hora",
-  "inc_taller_planta",
   "km_ejecucion",
   "causa_origen",
-  "uuid_estado_general",
 ];
 const estado_map = new Map([
   [0, "En Proceso"],
@@ -131,6 +129,12 @@ const columns = [
     align: "center",
   },
   {
+    name: "km_ejecucion",
+    label: "Kilometraje",
+    field: "km_ejecucion",
+    align: "center",
+  },
+  {
     name: "inc_cierre_fecha",
     label: "Fecha Cierre",
     field: "inc_cierre_fecha",
@@ -140,24 +144,6 @@ const columns = [
     name: "inc_cierre_hora",
     label: "Hora Cierre",
     field: "inc_cierre_hora",
-    align: "center",
-  },
-  {
-    name: "uuid_estado_general",
-    label: "ID Estado General",
-    field: "uuid_estado_general",
-    align: "center",
-  },
-  {
-    name: "inc_taller_planta",
-    label: "Taller / Planta",
-    field: "inc_taller_planta",
-    align: "center",
-  },
-  {
-    name: "km_ejecucion",
-    label: "Km Ejecución",
-    field: "km_ejecucion",
     align: "center",
   },
   {
@@ -189,16 +175,14 @@ const exportTable = async () => {
     "ID",
     "ESTADO",
     "PLACA PATENTE",
-    "TIPO SERVICIO",
+    "TIPO",
     "SISTEMA / COMPONENTE",
     "CAUSA / ORIGEN",
     "FECHA APERTURA",
     "HORA APERTURA",
+    "KILOMETRAJE",
     "FECHA CIERRE",
     "HORA CIERRE",
-    "ID ESTADO GENERAL",
-    "TALLER / PLANTA",
-    "KM EJECUCION",
   ]);
   const registros = await gethistoric();
   if (registros.length === 0) {
@@ -223,11 +207,9 @@ const exportTable = async () => {
       registro.causa_origen,
       registro.inc_apertura_fecha,
       registro.inc_apertua_hora,
+      registro.km_ejecucion,
       registro.inc_cierre_fecha,
       registro.inc_cierre_hora,
-      registro.uuid_estado_general,
-      registro.inc_taller_planta,
-      registro.km_ejecucion,
     ]);
   }
   const data = stringify(content, {

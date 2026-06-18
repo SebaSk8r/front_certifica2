@@ -5,13 +5,7 @@
         <div class="text-h6">Criterios</div>
       </q-card-section>
       <q-card-section>
-        <q-option-group
-          :options="options_list"
-          type="checkbox"
-          v-model="group"
-          @update:model-value="onUpdate()"
-          :disable="submited || view"
-        />
+        <q-option-group :options="options_list" type="checkbox" v-model="group" @update:model-value="onUpdate()" :disable="submited || view" />
       </q-card-section>
     </q-card>
     <q-card bordered class="q-ma-md">
@@ -19,14 +13,7 @@
         <div class="text-h6">Repuestos</div>
       </q-card-section>
       <q-card-section>
-        <q-btn
-          round
-          color="dark"
-          icon="add"
-          class="q-mb-sm"
-          @click="material_dialog = true"
-          :disable="view"
-        />
+        <q-btn round color="dark" icon="add" class="q-mb-sm" @click="material_dialog = true" :disable="view" />
         <q-markup-table>
           <thead>
             <tr>
@@ -44,14 +31,7 @@
               <td class="text-center">{{ material.cantidad }}</td>
               <td class="text-center">{{ material.medida }}</td>
               <td class="text-center">
-                <q-btn
-                  flat
-                  rounded
-                  color="purple"
-                  icon="delete"
-                  @click="material_remove(index)"
-                  :disable="view"
-                />
+                <q-btn flat rounded color="purple" icon="delete" @click="material_remove(index)" :disable="view" />
               </td>
             </tr>
           </tbody>
@@ -78,56 +58,27 @@
               <q-icon name="photo_camera" />
             </template>
             <template v-slot:after v-if="canUpload">
-              <q-btn
-                color="primary"
-                dense
-                icon="cloud_upload"
-                round
-                @click="onUpload"
-                :disable="!canUpload"
-                :loading="isUploading"
-              />
+              <q-btn color="primary" dense icon="cloud_upload" round @click="onUpload" :disable="!canUpload" :loading="isUploading" />
             </template>
           </q-file>
         </div>
       </q-card-section>
       <q-card-section>
-        <q-scroll-area
-          v-if="filenames.length > 0"
-          style="height: 135px"
-          visible
-        >
+        <q-scroll-area v-if="filenames.length > 0" style="height: 135px" visible>
           <div class="row justify-center q-gutter-sm">
             <q-img
               v-for="(filename, index) in filenames"
               :key="filename"
-              :src="
-                filenames_new
-                  ? preurl + 'thumb_' + remExt(filename.name) + '.webp'
-                  : preurl + 'thumb_' + filename
-              "
+              :src="filenames_new ? preurl + 'thumb_' + remExt(filename.name) + '.webp' : preurl + 'thumb_' + filename"
               basic
               spinner-color="primary"
               style="max-height: 200px; max-width: 200px"
               class="rounded-borders shadow-5"
             >
               <div class="absolute-bottom row">
-                <q-btn
-                  v-if="!view"
-                  color="white"
-                  icon="delete"
-                  flat
-                  dense
-                  @click="deleteImage(index)"
-                />
+                <q-btn v-if="!view" color="white" icon="delete" flat dense @click="deleteImage(index)" />
                 <q-space />
-                <q-btn
-                  color="white"
-                  icon="fullscreen"
-                  flat
-                  dense
-                  @click="largeImage(filename)"
-                />
+                <q-btn color="white" icon="fullscreen" flat dense @click="largeImage(filename)" />
               </div>
             </q-img>
           </div>
@@ -191,19 +142,8 @@
         </q-markup-table>
       </q-card-section>
       <q-card-actions align="right">
-        <q-btn
-          label="Guardar"
-          @click="onGuardar()"
-          color="secondary"
-          :disable="view"
-        />
-        <q-btn
-          label="Finalizar"
-          type="submit"
-          color="primary"
-          :loading="submited"
-          :disable="view"
-        />
+        <q-btn label="Guardar" @click="onGuardar()" color="secondary" :disable="view" />
+        <q-btn label="Finalizar" type="submit" color="primary" :loading="submited" :disable="view" />
       </q-card-actions>
     </q-card>
   </q-form>
@@ -217,9 +157,7 @@
           <q-input
             v-model="material_codigo"
             label="CODIGO"
-            :rules="[
-              (val) => (val && val.length > 0) || 'Este campo es obligatorio.',
-            ]"
+            :rules="[(val) => (val && val.length > 0) || 'Este campo es obligatorio.']"
             dense
             input-class="text-uppercase"
           >
@@ -230,9 +168,7 @@
           <q-input
             v-model="material_descripcion"
             label="DESCRIPCIÓN"
-            :rules="[
-              (val) => (val && val.length > 0) || 'Este campo es obligatorio.',
-            ]"
+            :rules="[(val) => (val && val.length > 0) || 'Este campo es obligatorio.']"
             dense
             input-class="text-uppercase"
           >
@@ -243,9 +179,7 @@
           <q-input
             v-model="material_cantidad"
             label="CANTIDAD"
-            :rules="[
-              (val) => (val && val.length > 0) || 'Este campo es obligatorio.',
-            ]"
+            :rules="[(val) => (val && val.length > 0) || 'Este campo es obligatorio.']"
             dense
             mask="#"
             reverse-fill-mask
@@ -259,9 +193,7 @@
             label="MEDIDA"
             :options="['UNIDAD', 'KILO', 'LITRO']"
             dense
-            :rules="[
-              (val) => (val && val.length > 0) || 'Este campo es obligatorio.',
-            ]"
+            :rules="[(val) => (val && val.length > 0) || 'Este campo es obligatorio.']"
             :readonly="submited"
           >
             <template v-slot:before>
@@ -270,30 +202,19 @@
           </q-select>
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn
-            label="Agregar"
-            type="submit"
-            color="primary"
-            :loading="submited"
-          />
+          <q-btn label="Agregar" type="submit" color="primary" :loading="submited" />
         </q-card-actions>
       </q-form>
     </q-card>
   </q-dialog>
-  <q-dialog
-    v-model="confirm_dialog"
-    transition-show="scale"
-    transition-hide="scale"
-    persistent
-  >
+  <q-dialog v-model="confirm_dialog" transition-show="scale" transition-hide="scale" persistent>
     <q-card bordered class="q-ma-md">
       <q-card-section>
         <div class="text-h6">Confirmación</div>
       </q-card-section>
 
       <q-card-section class="q-pt-none">
-        La inspección sera finalizada con estado "{{ estado_desc }}". <br />Por
-        favor confirmar finalización.
+        La inspección sera finalizada con estado "{{ estado_desc }}". <br />Por favor confirmar finalización.
       </q-card-section>
       <q-card-actions align="right">
         <q-btn label="Cancelar" color="secondary" v-close-popup />
@@ -337,8 +258,7 @@ const filenames = ref([]);
 const filenames_ori = ref(new Set());
 let filenames_new = false;
 
-const preurl =
-  "https://storage.googleapis.com/slared.appspot.com/inspeccion_tecnica/";
+const preurl = "https://storage.googleapis.com/slared.appspot.com/inspeccion_tecnica/";
 const curr_lows = ref(0);
 const curr_mediums = ref(0);
 const curr_highs = ref(0);
@@ -390,9 +310,7 @@ const onUpdate = () => {
   curr_lows.value = lows;
   curr_mediums.value = mediums;
   curr_highs.value = highs;
-  const defectos = options_all.value.filter(
-    (value) => !group.value.includes(value)
-  );
+  const defectos = options_all.value.filter((value) => !group.value.includes(value));
   const payload = {
     uuid: route.params.uuid,
     group: group.value,
@@ -435,63 +353,60 @@ const onSubmit = () => {
   curr_lows.value = lows;
   curr_mediums.value = mediums;
   curr_highs.value = highs;
+
   //Resultado: Alta>0 =>No certifica. Otros => Pendiente
+  const defectos_highs = total_highs.value - curr_highs.value;
+  const defectos_mediums = total_mediums.value - curr_mediums.value;
+  const defectos_lows = total_lows.value - curr_lows.value;
+  const defectos_total = defectos_highs + defectos_mediums + defectos_lows;
+
+  /*
+  console.log("Total ALTA: " + total_highs.value);
+  console.log("Total MEDIA: " + total_mediums.value);
+  console.log("Total BAJA: " + total_lows.value);
+
+  console.log("Defectos ALTA: " + defectos_highs);
+  console.log("Defectos MEDIA: " + defectos_mediums);
+  console.log("Defectos BAJA: " + defectos_lows);
+*/
+
   if (
-    total_highs.value - curr_highs.value > 0 ||
-    (curr_estado.value === 2 &&
-      (total_mediums.value - curr_mediums.value > 0 ||
-        total_lows.value - curr_lows.value > 0))
+    defectos_highs > 0 || // Al menos 1 defecto ALTA
+    (curr_estado.value === 2 && (defectos_mediums > 0 || defectos_lows > 0)) || // Reinspección con cualquier defecto medio o bajo
+    defectos_mediums >= 3 || // 3 o más defectos MEDIA
+    defectos_lows >= 5 || // 5 o más defectos BAJA
+    defectos_total > 5 // Más de 5 defectos en total
   ) {
     certifica.value = false;
-  } else if (
-    total_mediums.value - curr_mediums.value > 0 &&
-    curr_estado.value === 0
-  ) {
+  } else if (defectos_mediums > 0 && curr_estado.value === 0) {
     estado.value = 2;
-    fecha_reins.value = new Date(
-      Date.now() + 3600 * 1000 * 24 * 3
-    ).toLocaleDateString("en-GB", {
+    fecha_reins.value = new Date(Date.now() + 3600 * 1000 * 24 * 3).toLocaleDateString("en-GB", {
       month: "2-digit",
       day: "2-digit",
       year: "numeric",
     });
-    hora_reins.value = new Date(
-      Date.now() + 3600 * 1000 * 24 * 3
-    ).toLocaleTimeString("en-GB", { hour12: false });
+    hora_reins.value = new Date(Date.now() + 3600 * 1000 * 24 * 3).toLocaleTimeString("en-GB", { hour12: false });
     fecha_reins_timestamp.value = (Date.now() + 3600 * 1000 * 24 * 3) / 1000;
-  } else if (
-    total_lows.value - curr_lows.value > 0 &&
-    curr_estado.value === 0
-  ) {
+  } else if (defectos_lows > 0 && curr_estado.value === 0) {
     estado.value = 2;
-    fecha_reins.value = new Date(
-      Date.now() + 3600 * 1000 * 24 * 5
-    ).toLocaleDateString("en-GB", {
+    fecha_reins.value = new Date(Date.now() + 3600 * 1000 * 24 * 5).toLocaleDateString("en-GB", {
       month: "2-digit",
       day: "2-digit",
       year: "numeric",
     });
-    hora_reins.value = new Date(
-      Date.now() + 3600 * 1000 * 24 * 5
-    ).toLocaleTimeString("en-GB", { hour12: false });
+    hora_reins.value = new Date(Date.now() + 3600 * 1000 * 24 * 5).toLocaleTimeString("en-GB", { hour12: false });
     fecha_reins_timestamp.value = (Date.now() + 3600 * 1000 * 24 * 5) / 1000;
   } else certifica.value = true;
 
   estado_desc.value =
-    estado.value === 1 && certifica.value === true
-      ? "Aprobado"
-      : estado.value === 1 && certifica.value === false
-      ? "No Aprobado"
-      : "Reinspección";
+    estado.value === 1 && certifica.value === true ? "Aprobado" : estado.value === 1 && certifica.value === false ? "No Aprobado" : "Reinspección";
 
   //Mostramos dialog
   confirm_dialog.value = true;
 };
 const onConfirm = () => {
   //Identificamos incumplimientos.
-  const defectos = options_all.value.filter(
-    (value) => !group.value.includes(value)
-  );
+  const defectos = options_all.value.filter((value) => !group.value.includes(value));
   const resultado = curr_resultado.value;
   resultado.push({
     certifica: certifica.value,
@@ -529,10 +444,7 @@ const onConfirm = () => {
             year: "numeric",
           })
         : "",
-    hora_termino:
-      estado.value === 1
-        ? new Date().toLocaleTimeString([], { hour12: false })
-        : "",
+    hora_termino: estado.value === 1 ? new Date().toLocaleTimeString([], { hour12: false }) : "",
     fecha_termino_timestamp: estado.value === 1 ? Date.now() / 1000 : "",
   };
   update(payload);
@@ -548,7 +460,7 @@ const onConfirm = () => {
       router.push({
         name: "inspec_list",
       }),
-    2500
+    2500,
   );
 };
 const onSubmit_material = () => {
@@ -660,7 +572,7 @@ const onGuardar = () => {
       router.push({
         name: "inspec_list",
       }),
-    2500
+    2500,
   );
 };
 
@@ -733,9 +645,8 @@ watch(
   () => m_inspeccion_tecnicad_change.value,
   async () => {
     const inspec = await getbyid(route.params.uuid);
-    if (inspec && inspec["filenames"].length !== filenames.value.length)
-      filenames.value = inspec["filenames"];
-  }
+    if (inspec && inspec["filenames"].length !== filenames.value.length) filenames.value = inspec["filenames"];
+  },
 );
 </script>
 <style scoped>

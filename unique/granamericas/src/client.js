@@ -12,7 +12,7 @@ const inspeccion_pautas = ["ZK6128", "S"];
 const meses_estado_general = 3;
 const meses_inspeccion_tecnica = 6;
 const dashboard_link = "https://app.powerbi.com/home";
-const hdasboard_link = "";
+const hdasboard_link = "https://datastudio.google.com/embed/reporting/e15e98e4-badb-4510-b043-5d28b45be04d/page/p_ch5o0f3v1d";
 const revdoc_map = new Map([
   [true, "APROBADO"],
   [false, "NO APROBADO"],

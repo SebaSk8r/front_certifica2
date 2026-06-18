@@ -130,11 +130,9 @@ const visible_cols = [
   "sistema_componente",
   "co_numero",
   "oc_numero",
-  //"oc_solicitud_fecha",
-  //"oc_solicitud_hora",
+  "oc_solicitud_fecha",
+  "oc_solicitud_hora",
   "oc_solicitud_name",
-  "oc_entrega_solicitada_fecha",
-  "oc_entrega_solicitada_hora",
   "oc_taller_planta",
   "dominio",
   "repuesto_tipo",
@@ -237,13 +235,13 @@ const columns = [
   },
   {
     name: "oc_entrega_solicitada_fecha",
-    label: "Fecha Solicitud",
+    label: "Fecha Compromiso",
     field: "oc_entrega_solicitada_fecha",
     align: "center",
   },
   {
     name: "oc_entrega_solicitada_hora",
-    label: "Hora Solicitud",
+    label: "Hora Compromiso",
     field: "oc_entrega_solicitada_hora",
     align: "center",
   },
@@ -436,8 +434,9 @@ const fh_concretada = computed(() => {
 });
 
 const optionsFn = (date) => {
-  return date >= useDateFormat(new Date(oc_solicitud_timestamp * 1000), "YYYY/MM/DD").value;
+  return date >= useDateFormat(new Date(oc_solicitud_timestamp * 1000), "YYYY/MM/DD").value && date <= useDateFormat(new Date(), "YYYY/MM/DD").value;
 };
+
 const eventsFn = (date) => {
   return date >= useDateFormat(new Date(oc_solicitud_timestamp * 1000), "YYYY/MM/DD").value;
 };
@@ -530,11 +529,11 @@ const exportTable = async () => {
     "SISTEMA / COMPONENTE",
     "NUMERO CO",
     "NUMERO OC",
-    //"FECHA SOLICITUD",
-    //"HORA SOLICITUD",
-    "SOLICITANTE",
     "FECHA SOLICITUD",
     "HORA SOLICITUD",
+    "SOLICITANTE",
+    //"FECHA COMPROMISO",
+    //"HORA COMPROMISO",
     "TALLER / PLANTA",
     "DOMINIO",
     "TIPO REPUESTO",
@@ -582,11 +581,11 @@ const exportTable = async () => {
       solicitud_repuesto.sistema_componente,
       solicitud_repuesto.co_numero,
       solicitud_repuesto.oc_numero,
-      //solicitud_repuesto.oc_solicitud_fecha,
-      //solicitud_repuesto.oc_solicitud_hora,
+      solicitud_repuesto.oc_solicitud_fecha,
+      solicitud_repuesto.oc_solicitud_hora,
       solicitud_repuesto.oc_solicitud_name,
-      solicitud_repuesto.oc_entrega_solicitada_fecha,
-      solicitud_repuesto.oc_entrega_solicitada_hora,
+      //solicitud_repuesto.oc_entrega_solicitada_fecha,
+      //solicitud_repuesto.oc_entrega_solicitada_hora,
       solicitud_repuesto.oc_taller_planta,
       solicitud_repuesto.dominio === "0" ? "CARROCERIA" : solicitud_repuesto.dominio === "1" ? "CHASIS" : "CHASIS",
       solicitud_repuesto.repuesto_tipo,

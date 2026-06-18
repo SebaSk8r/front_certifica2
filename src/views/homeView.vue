@@ -69,7 +69,7 @@ const { m_indicador_change } = storeToRefs(useIndicadorStore());
 const loading = ref(true);
 
 const showDashboard = computed(() => {
-  if (["voy", "redbus"].includes(client)) return true;
+  if (["voy", "redbus", "conecta", "granamericas", "metropol", "subus"].includes(client)) return true;
   else return false;
 });
 
@@ -213,7 +213,11 @@ invoke(async () => {
   width: 100%;
 }
 
-.iframe-voy iframe {
+.iframe-voy iframe,
+.iframe-conecta iframe,
+.iframe-granamericas iframe,
+.iframe-metropol iframe,
+.iframe-subus iframe {
   width: 100%;
   height: 85vh;
   border: 0;
@@ -226,7 +230,11 @@ invoke(async () => {
 }
 
 @media (max-width: 700px) {
-  .iframe-voy iframe {
+  .iframe-voy iframe,
+  .iframe-conecta iframe,
+  .iframe-granamericas iframe,
+  .iframe-metropol iframe,
+  .iframe-subus iframe {
     height: 110vh;
   }
   .iframe-redbus iframe {

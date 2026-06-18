@@ -17,8 +17,20 @@ const terminales_map = new Map([
   ["LA ESTRELLA", ["15", -70.75052950006223, -33.42753429216531]],
   ["DIEGO PORTALES", ["15", -70.56479193752328, -33.559980499434175]],
   ["LAS PERDICES", ["14", -70.56479193752328, -33.559980499434175]],
+  ["LOS PEUMOS", ["15", -70.56479193752328, -33.559980499434175]],
 ]);
-const terminales = ["ENEA", "LA ESTRELLA", "LA VARA", "LAS PERDICES", "LO ESPEJO", "MUJICA", "RINCONADA DE NOS", "EL CONQUISTADOR", "DIEGO PORTALES"];
+const terminales = [
+  "ENEA",
+  "LA ESTRELLA",
+  "LA VARA",
+  "LAS PERDICES",
+  "LO ESPEJO",
+  "LOS PEUMOS",
+  "MUJICA",
+  "RINCONADA DE NOS",
+  "EL CONQUISTADOR",
+  "DIEGO PORTALES",
+];
 const inspeccion_pautas = ["ZK6128", "S"];
 const meses_estado_general = 3;
 const meses_inspeccion_tecnica = 6;
