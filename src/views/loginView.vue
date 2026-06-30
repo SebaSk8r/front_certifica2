@@ -65,12 +65,7 @@
 
 <script setup>
 import { useUserStore } from "@/store/userStore";
-import {
-  signInWithPopup,
-  GoogleAuthProvider,
-  browserPopupRedirectResolver,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+import { signInWithPopup, GoogleAuthProvider, browserPopupRedirectResolver, signInWithEmailAndPassword } from "firebase/auth";
 import { ref } from "vue";
 import { useQuasar } from "quasar";
 import { client } from "@/client";
@@ -90,21 +85,13 @@ const login = () => {
   signInWithPopup(auth, new GoogleAuthProvider(), browserPopupRedirectResolver)
     .then((authResult) => {
       authResult.user.getIdTokenResult().then((tokenResult) => {
-        tokenResult.claims.allow_access;
         if (tokenResult.claims.allow_access) {
-          setuser({
-            uid: authResult.user.uid,
-            name: authResult.user.displayName,
-            only_view: false,
-            admin: tokenResult.claims.allow_admin ? true : false,
-          });
+          setuser({ uid: authResult.user.uid, name: authResult.user.displayName, only_view: false, admin: tokenResult.claims.allow_admin ? true : false });
           router.push({ name: "home" });
         } else router.push({ name: "noaccess" });
       });
     })
-    .catch((error) => {
-      console.log(error);
-    });
+    .catch(console.log);
 };
 
 const login_email = () => {
@@ -113,18 +100,10 @@ const login_email = () => {
     .then((authResult) => {
       authResult.user.getIdTokenResult().then((tokenResult) => {
         if (tokenResult.claims[client] || tokenResult.claims.dtpm) {
-          setuser({
-            uid: authResult.user.uid,
-            name: email.value,
-            only_view: true,
-            admin: false,
-            dtpm: tokenResult.claims.dtpm ? true : false,
-            sumi: tokenResult.claims.sumi ? true : false,
-            srepu: tokenResult.claims.srepu ? true : false,
-            srepa: tokenResult.claims.srepa ? true : false,
-            sdiag: tokenResult.claims.sdiag ? true : false,
-            carro: tokenResult.claims.carro ? true : false,
-          });
+          setuser({ uid: authResult.user.uid, name: email.value, only_view: true, admin: false,
+            dtpm: tokenResult.claims.dtpm ? true : false, sumi: tokenResult.claims.sumi ? true : false,
+            srepu: tokenResult.claims.srepu ? true : false, srepa: tokenResult.claims.srepa ? true : false,
+            sdiag: tokenResult.claims.sdiag ? true : false, carro: tokenResult.claims.carro ? true : false });
           if (tokenResult.claims.carro) router.push({ name: "soploc_listru" });
           else router.push({ name: "home" });
         } else router.push({ name: "noaccess" });
@@ -132,36 +111,14 @@ const login_email = () => {
     })
     .catch(() => {
       submited.value = false;
-      notify({
-        color: "red-6",
-        textColor: "white",
-        icon: "error",
-        message: "Usuario o Password invalido.",
-        timeout: 5000,
-      });
+      notify({ color: "negative", icon: "error", message: "Usuario o contraseña inválido." });
     });
 };
 </script>
 
 <style lang="scss" scoped>
-.login-root {
-  min-height: 100vh;
-  background: var(--color-background);
-}
-
-.login-card {
-  width: 420px;
-  max-width: 90vw;
-}
-
-.login-btn {
-  height: 52px;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.radius-lg {
-  border-radius: 12px;
-}
+.login-root { min-height: 100vh; background: var(--color-background); }
+.login-card { width: 420px; max-width: 90vw; }
+.login-btn { height: 52px; border-radius: 12px; font-size: 15px; font-weight: 500; }
+.radius-lg { border-radius: 12px; }
 </style>
