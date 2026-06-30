@@ -87,13 +87,8 @@
           dense outlined
           placeholder="Buscar módulo..."
           clearable
-          ref="searchInputRef"
-          @keydown.esc="onSearchEscape"
         >
           <template #prepend><q-icon name="search" size="18px" /></template>
-          <template v-if="!menuSearch" #append>
-            <q-badge outline color="grey-6" class="search-shortcut">Ctrl+K</q-badge>
-          </template>
         </q-input>
       </div>
 
@@ -310,7 +305,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
+import { ref, computed, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { useUserStore } from "@/store/userStore";
 import { useEstadogStore } from "@/store/estadogStore";
@@ -347,7 +342,6 @@ const route = useRoute();
 const drawerOpen = ref(false);
 const miniState = ref(true);
 const menuSearch = ref("");
-const searchInputRef = ref(null);
 const { name, dtpm, carro, binduser, unbinduser } = useUserStore();
 
 const menuMatch = (...labels) => {
@@ -418,25 +412,6 @@ const showMenu = (menu) => {
   if (menu === "trasp" && !["subus"].includes(client)) return false;
   if (menu === "traspn" && !["conecta", "voy", "granamericas"].includes(client)) return false;
   else return true;
-};
-
-onMounted(() => {
-  const onKeydown = (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "k") {
-      e.preventDefault();
-      drawerOpen.value = true;
-      miniState.value = false;
-      nextTick(() => searchInputRef.value?.focus());
-    }
-  };
-  document.addEventListener("keydown", onKeydown);
-  onUnmounted(() => document.removeEventListener("keydown", onKeydown));
-});
-
-const onSearchEscape = () => {
-  if (menuSearch.value) {
-    menuSearch.value = "";
-  }
 };
 
 const { bind: bindest, unbind: unbindest, bind_p: bindest_p, unbind_p: unbindest_p } = useEstadogStore();
@@ -634,13 +609,7 @@ onUnmounted(() => {
   font-size: 13.5px;
 }
 
-.search-shortcut :deep(.q-badge) {
-  border-color: var(--color-text-tertiary) !important;
-  color: var(--color-text-tertiary) !important;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  font-size: 11px;
-}
+
 
 .nav-section-header {
   font-size: 11px !important;
